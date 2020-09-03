@@ -1,6 +1,8 @@
 import { app, BrowserWindow, screen } from 'electron';
 import * as path from 'path';
 import * as url from 'url';
+import * as ffbinaries from 'ffbinaries';
+import * as fs from 'fs';
 
 let win: BrowserWindow = null;
 const args = process.argv.slice(1),
@@ -15,8 +17,8 @@ function createWindow(): BrowserWindow {
   win = new BrowserWindow({
     x: 0,
     y: 0,
-    width: size.width,
-    height: size.height,
+    width: size.width/3,
+    height: size.height/3,
     webPreferences: {
       nodeIntegration: true,
       allowRunningInsecureContent: (serve) ? true : false,
@@ -40,6 +42,20 @@ function createWindow(): BrowserWindow {
       slashes: true
     }));
   }
+
+  fs.existsSync
+
+
+  const dest = './ffbinaries/';
+  if (fs.existsSync(dest)) {
+    console.log('exists')
+  } else {
+    ffbinaries.downloadBinaries(['ffmpeg', 'ffprobe'], {platform: ffbinaries.detectPlatform() , quiet: true, destination: dest}, function (err, data) {
+      console.log("err,data", err, data)
+      console.log('Downloaded ffplay and ffprobe binaries for linux-64 to ' + dest + '.');
+    });
+  }
+  
 
   // Emitted when the window is closed.
   win.on('closed', () => {

@@ -2,26 +2,21 @@
   "name": "angular-electron",
   "version": "8.0.4",
   "description": "Angular 10 with Electron (Typescript + SASS + Hot Reload)",
-  "homepage": "https://github.com/maximegris/angular-electron",
+  "homepage": "https://github.com/hopskipnfall/dialog",
   "author": {
-    "name": "Maxime GRIS",
-    "email": "maxime.gris@gmail.com"
+    "name": "Jonn",
+    "email": "jonn@jonnjonnjonn.com"
   },
   "keywords": [
     "angular",
-    "angular 10",
     "electron",
     "nodejs",
     "typescript",
-    "spectron",
-    "eslint",
-    "sass",
     "windows",
     "mac",
     "linux"
   ],
   "main": "main.js",
-  "private": true,
   "scripts": {
     "postinstall": "electron-builder install-app-deps",
     "ng": "ng",
@@ -95,5 +90,8 @@
   },
   "engines": {
     "node": ">=10.13.0"
+  },
+  "dependencies": {
+    "ffbinaries": "1.1.4"
   }
 }
