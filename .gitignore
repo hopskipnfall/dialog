@@ -38,7 +38,10 @@ src/**/*.js
 npm-debug.log
 testem.log
 /typings
+
+# Created during execution
 /ffbinaries
+/.tmp
 
 # e2e
 /e2e/*.js
