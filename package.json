@@ -54,6 +54,7 @@
     "@angular/router": "10.0.14",
     "@ngx-translate/core": "13.0.0",
     "@ngx-translate/http-loader": "6.0.0",
+    "@types/fluent-ffmpeg": "2.1.14",
     "@types/jasmine": "3.5.14",
     "@types/jasminewd2": "2.0.8",
     "@types/mocha": "8.0.3",
@@ -93,7 +94,9 @@
   },
   "dependencies": {
     "@angular/localize": "10.0.14",
+    "@ffmpeg-installer/ffmpeg": "1.0.20",
+    "@ffprobe-installer/ffprobe": "1.1.0",
     "@ng-bootstrap/ng-bootstrap": "7.0.0",
-    "ffbinaries": "1.1.4"
+    "fluent-ffmpeg": "2.1.2"
   }
 }

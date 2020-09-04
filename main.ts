@@ -1,10 +1,11 @@
 import { app, BrowserWindow, screen, dialog, ipcMain } from 'electron';
 import * as path from 'path';
 import * as url from 'url';
-import * as ffbinaries from 'ffbinaries';
 import * as fs from 'fs';
 import { spawn } from './extraction/spawn';
 import { Video } from './extraction/video';
+import * as ffmpeg from '@ffmpeg-installer/ffmpeg';
+import * as ffprobe from '@ffprobe-installer/ffprobe';
 
 let win: BrowserWindow = null;
 const args = process.argv.slice(1),
@@ -47,14 +48,19 @@ function createWindow(): BrowserWindow {
   }
 
 
-  if (fs.existsSync(dest)) {
-    console.log('exists')
-  } else {
-    ffbinaries.downloadBinaries(['ffmpeg', 'ffprobe'], { platform: ffbinaries.detectPlatform(), quiet: true, destination: dest }, function (err, data) {
-      console.log("err,data", err, data)
-      console.log('Downloaded ffplay and ffprobe binaries for linux-64 to ' + dest + '.');
-    });
-  }
+  // if (fs.existsSync(dest)) {
+  //   console.log('exists')
+  // } else {
+  //   console.log('LOGGING STUFF', ffmpeg.path, ffmpeg.version);
+  //   console.log('ALSO FFPROBE', ffprobe.path, ffprobe.version);
+    
+  //   // ffbinaries.downloadBinaries(['ffmpeg', 'ffprobe'], { platform: ffbinaries.detectPlatform(), quiet: true, destination: dest }, function (err, data) {
+  //   //   console.log("err,data", err, data)
+  //   //   console.log('Downloaded ffplay and ffprobe binaries for linux-64 to ' + dest + '.');
+  //   // });
+  // }
+  console.log('LOGGING STUFF', ffmpeg.path, ffmpeg.version);
+  console.log('ALSO FFPROBE', ffprobe.path, ffprobe.version);
 
   // Emitted when the window is closed.
   win.on('closed', () => {
@@ -69,18 +75,17 @@ function createWindow(): BrowserWindow {
 
 ipcMain.handle('perform-action', (event) => {
   // ... do something on behalf of the renderer ...
-  console.log('event', event);
+  // console.log('event', event);
   dialog.showOpenDialog({ properties: ['openFile', 'openDirectory', 'multiSelections'] }).then(value => {
-    console.error('PATHPATH', path.join(dest, 'ffprobe'));
     console.error('PATHPATH2', value.filePaths[0]);
-    const bat = spawn(path.join(dest, 'ffprobe'), [
-      value.filePaths[0]
-    ]);
-    bat.then(val => {
-      console.log('val1', val);
-      new Video(value.filePaths[0], path.join(__dirname, '.tmp/'), { ffmpeg: path.join(dest, 'ffmpeg'), ffprobe: path.join(dest, 'ffprobe') })
-        .extractDialog();
-    })
+    // const bat = spawn(path.join(dest, 'ffprobe'), [
+    //   value.filePaths[0]
+    // ]);
+    // bat.then(val => {
+    // console.log('val1', val);
+    new Video(value.filePaths[0], path.join(__dirname, '.tmp/'), { ffmpeg: ffmpeg.path, ffprobe: ffprobe.path })
+      .extractDialog();
+    // })
   })
 });
 
