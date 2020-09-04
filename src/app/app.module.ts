@@ -19,6 +19,8 @@ import { DetailModule } from './detail/detail.module';
 
 import { AppComponent } from './app.component';
 
+import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
+
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -35,6 +37,7 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     HomeModule,
     DetailModule,
     AppRoutingModule,
+    // NgbModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,

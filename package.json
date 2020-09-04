@@ -92,6 +92,8 @@
     "node": ">=10.13.0"
   },
   "dependencies": {
+    "@angular/localize": "10.0.14",
+    "@ng-bootstrap/ng-bootstrap": "7.0.0",
     "ffbinaries": "1.1.4"
   }
 }

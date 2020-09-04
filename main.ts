@@ -1,12 +1,16 @@
-import { app, BrowserWindow, screen } from 'electron';
+import { app, BrowserWindow, screen, dialog, ipcMain } from 'electron';
 import * as path from 'path';
 import * as url from 'url';
 import * as ffbinaries from 'ffbinaries';
 import * as fs from 'fs';
+import { spawn } from 'child_process'
 
 let win: BrowserWindow = null;
 const args = process.argv.slice(1),
   serve = args.some(val => val === '--serve');
+
+
+const dest = path.join(__dirname, 'ffbinaries/');
 
 function createWindow(): BrowserWindow {
 
@@ -17,15 +21,14 @@ function createWindow(): BrowserWindow {
   win = new BrowserWindow({
     x: 0,
     y: 0,
-    width: size.width/3,
-    height: size.height/3,
+    width: size.width / 3,
+    height: size.height / 3,
     webPreferences: {
       nodeIntegration: true,
       allowRunningInsecureContent: (serve) ? true : false,
-      enableRemoteModule : false // true if you want to use remote module in renderer context (ie. Angular)
+      enableRemoteModule: false // true if you want to use remote module in renderer context (ie. Angular)
     },
   });
-
   if (serve) {
 
     win.webContents.openDevTools();
@@ -43,19 +46,15 @@ function createWindow(): BrowserWindow {
     }));
   }
 
-  fs.existsSync
 
-
-  const dest = './ffbinaries/';
   if (fs.existsSync(dest)) {
     console.log('exists')
   } else {
-    ffbinaries.downloadBinaries(['ffmpeg', 'ffprobe'], {platform: ffbinaries.detectPlatform() , quiet: true, destination: dest}, function (err, data) {
+    ffbinaries.downloadBinaries(['ffmpeg', 'ffprobe'], { platform: ffbinaries.detectPlatform(), quiet: true, destination: dest }, function (err, data) {
       console.log("err,data", err, data)
       console.log('Downloaded ffplay and ffprobe binaries for linux-64 to ' + dest + '.');
     });
   }
-  
 
   // Emitted when the window is closed.
   win.on('closed', () => {
@@ -67,6 +66,55 @@ function createWindow(): BrowserWindow {
 
   return win;
 }
+
+ipcMain.handle('perform-action', (event) => {
+  // ... do something on behalf of the renderer ...
+  console.log('event', event);
+  dialog.showOpenDialog({ properties: ['openFile', 'openDirectory', 'multiSelections'] }).then(value => {
+    console.error('PATHPATH', path.join(dest, 'ffprobe'));
+    console.error('PATHPATH2', value.filePaths[0]);
+    const bat = spawn(path.join(dest, 'ffprobe'), [
+      value.filePaths[0]
+    ]);
+    
+    bat.stdout.on("data", (data) => {
+      console.error('DATA', data)
+      // Handle data...
+    });
+  
+    bat.stderr.on("data", (data: string) => {
+      console.error(`stderr: ${data}`);
+      // Handle error...
+    });
+  
+    bat.on("exit", (code) => {
+      console.error('exit code', code);
+      const tmpDir = path.join(__dirname, '.tmp');
+
+      fs.mkdirSync(tmpDir, { recursive: true }) //todo: async
+      //return shell.ExecuteCommand(v.l, "ffmpeg", "-y", "-i", v.Path, "-map", fmt.Sprintf("%d:%d", ffmpegInputNumber, c.Subtitles.Index), c.TempDir+"subs.srt")
+      const bat2 = spawn(path.join(dest, 'ffmpeg'), [
+        '-y', // Do not ask for confirmation.
+        '-i', // Input.
+        value.filePaths[0],
+        '-map',
+        `0:2`,
+        path.join(tmpDir, 'subs.srt'),
+      ]);
+
+      bat2.stdout.on("data", (data) => {
+        console.error('DATA2', data)
+        // Handle data...
+      });
+    
+      bat2.stderr.on("data", (data: string) => {
+        console.error(`stderr2: ${data}`);
+        // Handle error...
+      });
+
+    });
+  })
+});
 
 try {
   // This method will be called when Electron has finished
