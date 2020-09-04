@@ -3,12 +3,12 @@ import * as path from 'path';
 import * as url from 'url';
 import * as ffbinaries from 'ffbinaries';
 import * as fs from 'fs';
-import { spawn } from 'child_process'
+import { spawn } from './extraction/spawn';
+import { Video } from './extraction/video';
 
 let win: BrowserWindow = null;
 const args = process.argv.slice(1),
   serve = args.some(val => val === '--serve');
-
 
 const dest = path.join(__dirname, 'ffbinaries/');
 
@@ -76,43 +76,11 @@ ipcMain.handle('perform-action', (event) => {
     const bat = spawn(path.join(dest, 'ffprobe'), [
       value.filePaths[0]
     ]);
-    
-    bat.stdout.on("data", (data) => {
-      console.error('DATA', data)
-      // Handle data...
-    });
-  
-    bat.stderr.on("data", (data: string) => {
-      console.error(`stderr: ${data}`);
-      // Handle error...
-    });
-  
-    bat.on("exit", (code) => {
-      console.error('exit code', code);
-      const tmpDir = path.join(__dirname, '.tmp');
-
-      fs.mkdirSync(tmpDir, { recursive: true }) //todo: async
-      //return shell.ExecuteCommand(v.l, "ffmpeg", "-y", "-i", v.Path, "-map", fmt.Sprintf("%d:%d", ffmpegInputNumber, c.Subtitles.Index), c.TempDir+"subs.srt")
-      const bat2 = spawn(path.join(dest, 'ffmpeg'), [
-        '-y', // Do not ask for confirmation.
-        '-i', // Input.
-        value.filePaths[0],
-        '-map',
-        `0:2`,
-        path.join(tmpDir, 'subs.srt'),
-      ]);
-
-      bat2.stdout.on("data", (data) => {
-        console.error('DATA2', data)
-        // Handle data...
-      });
-    
-      bat2.stderr.on("data", (data: string) => {
-        console.error(`stderr2: ${data}`);
-        // Handle error...
-      });
-
-    });
+    bat.then(val => {
+      console.log('val1', val);
+      new Video(value.filePaths[0], path.join(__dirname, '.tmp/'), { ffmpeg: path.join(dest, 'ffmpeg'), ffprobe: path.join(dest, 'ffprobe') })
+        .extractDialog();
+    })
   })
 });
 
