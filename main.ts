@@ -1,4 +1,4 @@
-import { app, BrowserWindow, screen, dialog, ipcMain } from 'electron';
+import { app, BrowserWindow, screen, dialog, ipcMain, ipcRenderer } from 'electron';
 import * as path from 'path';
 import * as url from 'url';
 import * as fs from 'fs';
@@ -73,10 +73,11 @@ function createWindow(): BrowserWindow {
   return win;
 }
 
-ipcMain.handle('perform-action', (event) => {
+ipcMain.on('perform-action', (event) => {
   // ... do something on behalf of the renderer ...
   // console.log('event', event);
   dialog.showOpenDialog({ properties: ['openFile', 'openDirectory', 'multiSelections'] }).then(value => {
+
     console.error('PATHPATH2', value.filePaths[0]);
     // const bat = spawn(path.join(dest, 'ffprobe'), [
     //   value.filePaths[0]
@@ -86,6 +87,7 @@ ipcMain.handle('perform-action', (event) => {
     new Video(value.filePaths[0], path.join(__dirname, '.tmp/'), { ffmpeg: ffmpeg.path, ffprobe: ffprobe.path })
       .extractDialog();
     // })
+    event.returnValue = value;
   })
 });
 

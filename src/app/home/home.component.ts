@@ -14,8 +14,9 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void { }
 
   doThing() {
-    console.error('hey it\'s doing the thing!')
-    this.electron.ipcRenderer.invoke('perform-action')
+    console.error('hey it\'s doing the thing!');
+
+    console.log('action is performed', this.electron.ipcRenderer.sendSync('perform-action'));
   }
 
 }
