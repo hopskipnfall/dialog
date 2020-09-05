@@ -29,22 +29,22 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
 @NgModule({
   declarations: [AppComponent],
   imports: [
-    BrowserModule,
-    FormsModule,
-    HttpClientModule,
-    CoreModule,
-    SharedModule,
-    HomeModule,
-    DetailModule,
     AppRoutingModule,
-    // NgbModule,
+    BrowserModule,
+    CoreModule,
+    DetailModule,
+    FormsModule,
+    HomeModule,
+    HttpClientModule,
+    NgbModule,
+    SharedModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
         useFactory: HttpLoaderFactory,
         deps: [HttpClient]
       }
-    })
+    }),
   ],
   providers: [],
   bootstrap: [AppComponent]

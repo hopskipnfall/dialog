@@ -97,6 +97,7 @@
     "@ffmpeg-installer/ffmpeg": "1.0.20",
     "@ffprobe-installer/ffprobe": "1.1.0",
     "@ng-bootstrap/ng-bootstrap": "7.0.0",
+    "bootstrap": "^4.5.0",
     "fluent-ffmpeg": "2.1.2"
   }
 }
