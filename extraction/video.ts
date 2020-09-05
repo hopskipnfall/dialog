@@ -1,5 +1,6 @@
 
 import * as ffmpeg from 'fluent-ffmpeg';
+import * as path from 'path';
 import * as fs from 'fs';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { FfpathsConfig } from './ffpaths';
@@ -28,9 +29,23 @@ export class Video {
 
   private extractSubtitles() {
     // TODO: Add a timeout.
-    ffmpeg.ffprobe(this.videoPath, (err, data) => {
-      console.error('FFPROBEDATA', data);
-    })
+    ffmpeg(this.videoPath)
+      .outputOption('-map 0:2')
+      .saveToFile(path.join(this.scratchPath, 'subsz.srt'))
+      .on('progress', function (progress) {
+        console.log('Processing: ' + progress.percent + '% done');
+      })
+      .on('error', function (err, stdout, stderr) {
+        console.log('Cannot process video: ' + err.message);
+      })
+      .on('end', function (stdout: string, stderr: string) {
+        console.log('Transcoding succeeded !');
+      })
+      .run();
+
+    // ffmpeg.ffprobe(this.videoPath, (err, data) => {
+    //   console.error('FFPROBEDATA', data);
+    // })
     //   const cmd = ffmpeg(this.videoPath);
     //   cmd.map(`0:2`)
 

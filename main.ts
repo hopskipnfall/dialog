@@ -90,9 +90,9 @@ ipcMain.on('select-files', (event) => {
   })
 });
 
-ipcMain.on('extract-dialog', (event, path) => {
-  console.log('Extracting for file', path);
-  new Video(path, path.join(__dirname, '.tmp/'), { ffmpeg: ffmpeg.path, ffprobe: ffprobe.path })
+ipcMain.on('extract-dialog', (event, vidPath) => {
+  console.log('Extracting for file', vidPath);
+  new Video(vidPath, path.join(__dirname, '.tmp/'), { ffmpeg: ffmpeg.path, ffprobe: ffprobe.path })
     .extractDialog();
 });
 
