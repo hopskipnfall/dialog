@@ -23,6 +23,10 @@ export class VideoService implements OnDestroy {
     this.electron.ipcRenderer.send('select-files');
   }
 
+  start() {
+    this.electron.ipcRenderer.send('extract-dialog', this.videos.getValue()[0].ffprobeData.format.filename);
+  }
+
   getVideos(): Observable<VideoModel[]> {
     return this.videos;
   }

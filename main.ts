@@ -90,6 +90,12 @@ ipcMain.on('select-files', (event) => {
   })
 });
 
+ipcMain.on('extract-dialog', (event, path) => {
+  console.log('Extracting for file', path);
+  new Video(path, path.join(__dirname, '.tmp/'), { ffmpeg: ffmpeg.path, ffprobe: ffprobe.path })
+    .extractDialog();
+});
+
 try {
   // This method will be called when Electron has finished
   // initialization and is ready to create browser windows.
