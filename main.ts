@@ -49,7 +49,7 @@ function createWindow(): BrowserWindow {
   // } else {
   //   console.log('LOGGING STUFF', ffmpeg.path, ffmpeg.version);
   //   console.log('ALSO FFPROBE', ffprobe.path, ffprobe.version);
-    
+
   //   // ffbinaries.downloadBinaries(['ffmpeg', 'ffprobe'], { platform: ffbinaries.detectPlatform(), quiet: true, destination: dest }, function (err, data) {
   //   //   console.log("err,data", err, data)
   //   //   console.log('Downloaded ffplay and ffprobe binaries for linux-64 to ' + dest + '.');
@@ -69,21 +69,24 @@ function createWindow(): BrowserWindow {
   return win;
 }
 
-ipcMain.on('perform-action', (event) => {
-  // ... do something on behalf of the renderer ...
-  // console.log('event', event);
-  dialog.showOpenDialog({ properties: ['openFile', 'openDirectory', 'multiSelections'] }).then(value => {
+ipcMain.on('select-files', (event) => {
+  dialog.showOpenDialog({
+    properties: ['openFile', 'openDirectory', 'multiSelections'],
+    filters: [{ name: 'videosOnly', extensions: ['mkv'] }],
+  }).then(value => {
+    if (value.canceled) {
+      // User hit "cancel" on the file selector.
+      return;
+    }
 
-    console.error('PATHPATH2', value.filePaths[0]);
-    // const bat = spawn(path.join(dest, 'ffprobe'), [
-    //   value.filePaths[0]
-    // ]);
-    // bat.then(val => {
-    // console.log('val1', val);
-    new Video(value.filePaths[0], path.join(__dirname, '.tmp/'), { ffmpeg: ffmpeg.path, ffprobe: ffprobe.path })
-      .extractDialog();
-    // })
-    event.returnValue = value;
+    value.filePaths.forEach(file => {
+      new Video(file, path.join(__dirname, '.tmp/'), { ffmpeg: ffmpeg.path, ffprobe: ffprobe.path })
+        .getInfo()
+        .then(val => {
+          const humanName = path.basename(val.format.filename);
+          event.sender.send('new-files', humanName, val);
+        });
+    });
   })
 });
 

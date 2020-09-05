@@ -5,7 +5,19 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { FfpathsConfig } from './ffpaths';
 
 export class Video {
-  constructor(private videoPath: string, private scratchPath: string, private ffpaths: FfpathsConfig) { }
+  constructor(private videoPath: string, private scratchPath: string, private ffpaths: FfpathsConfig) {
+    ffmpeg.setFfmpegPath(this.ffpaths.ffmpeg);
+    ffmpeg.setFfprobePath(this.ffpaths.ffprobe);
+  }
+
+  getInfo(): Promise<ffmpeg.FfprobeData> {
+    return new Promise((resolve, reject) => {
+      ffmpeg.ffprobe(this.videoPath, (err, data) => {
+        if (data) resolve(data);
+        if (err) reject(err);
+      });
+    });
+  }
 
   extractDialog(): Observable<number> {
     fs.mkdirSync(this.scratchPath, { recursive: true }) //todo: async
@@ -16,8 +28,6 @@ export class Video {
 
   private extractSubtitles() {
     // TODO: Add a timeout.
-    ffmpeg.setFfmpegPath(this.ffpaths.ffmpeg);
-    ffmpeg.setFfprobePath(this.ffpaths.ffprobe);
     ffmpeg.ffprobe(this.videoPath, (err, data) => {
       console.error('FFPROBEDATA', data);
     })
