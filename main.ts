@@ -90,17 +90,26 @@ ipcMain.on('select-files', (event) => {
   })
 });
 
-ipcMain.on('extract-dialog', (event, vidPath) => {
-  console.log('Extracting for file', vidPath);
-  new Video(vidPath, path.join(__dirname, '.tmp/'), { ffmpeg: ffmpeg.path, ffprobe: ffprobe.path })
-    .extractDialog();
+ipcMain.on('extract-dialog', (event, vidPaths) => {
+  (async () => {
+    for (let i = 0; i < vidPaths.length; i++) {
+      const vidPath = vidPaths[i];
+      console.log('Extracting for file', vidPath);
+      const v = new Video(vidPath, path.join(__dirname, '.tmp/'), { ffmpeg: ffmpeg.path, ffprobe: ffprobe.path });
+      const sub = v.getProgress().subscribe(status => {
+        event.sender.send('progress-update', status);
+      })
+      await v.extractDialog()
+      sub.unsubscribe();
+    }
+  })();
 });
 
 try {
   // This method will be called when Electron has finished
   // initialization and is ready to create browser windows.
   // Some APIs can only be used after this event occurs.
-  // Added 400 ms to fix the black background issue while using transparent window. More detais at https://github.com/electron/electron/issues/15947
+  // Added 400 ms to fix the black background issue while using transparent window. More details at https://github.com/electron/electron/issues/15947
   app.on('ready', () => setTimeout(createWindow, 400));
 
   // Quit when all windows are closed.

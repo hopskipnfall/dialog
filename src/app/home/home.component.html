@@ -1,24 +1,40 @@
 <div class="container">
   <h1 class="title">
-    {{ 'PAGES.HOME.TITLE' | translate }}
+    {{ "PAGES.HOME.TITLE" | translate }}
   </h1>
 
-  <a routerLink="/detail">{{ 'PAGES.HOME.GO_TO_DETAIL' | translate }}</a>
-  <br>
-  <button class="btn btn-primary" type="button" (click)="doThing()">Add Videos</button>
-  <br>
+  <!-- <a routerLink="/detail">{{ "PAGES.HOME.GO_TO_DETAIL" | translate }}</a> -->
+  <button class="btn btn-primary" type="button" (click)="doThing()">
+    Add Videos
+  </button>
+  <br />
 
-  <ngb-accordion [closeOthers]="true" activeIds="static-1" style="width: 95%">
-    <ngb-panel id="{{ video.ffprobeData.format.filename }}"
-               *ngFor="let video of (videos)"
+  <ngb-accordion [closeOthers]="true" activeIds="static-1" style="width: 100%">
+    <ngb-panel
+      id="{{ video.ffprobeData.format.filename }}"
+      *ngFor="let video of videos"
     >
-    <ng-template ngbPanelTitle>
-      <span>{{ video.filename }}</span>
-    </ng-template>
+      <ng-template ngbPanelTitle>
+        <span>
+          {{ video.filename }}
+          <ngb-progressbar
+            [type]="getType(video)"
+            [value]="video.status.percentage"
+            [striped]="!video.status.phase.endsWith('DONE')"
+            [animated]="false"
+          >
+          {{ video.status.phase }}
+          </ngb-progressbar>
+        </span>
+      </ng-template>
       <ng-template ngbPanelContent>
-        {{ stringify(video.ffprobeData) }}
+        HELLO WORLD
+        <!-- {{ stringify(video.ffprobeData) }} -->
       </ng-template>
     </ngb-panel>
   </ngb-accordion>
 
-  <button class="btn btn-primary" type="button" (click)="start()">Add Videos</button>
+  <button class="btn btn-primary" type="button" (click)="start()">
+    Extract Dialog
+  </button>
+</div>
