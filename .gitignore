@@ -43,6 +43,7 @@ testem.log
 # Created during execution
 /ffbinaries
 /.tmp
+**.mp3
 
 # e2e
 /e2e/*.js
