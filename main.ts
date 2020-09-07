@@ -1,6 +1,9 @@
-import { app, BrowserWindow, screen } from 'electron';
+import * as ffmpeg from '@ffmpeg-installer/ffmpeg';
+import * as ffprobe from '@ffprobe-installer/ffprobe';
+import { app, BrowserWindow, dialog, ipcMain, screen } from 'electron';
 import * as path from 'path';
 import * as url from 'url';
+import { Video } from './extraction/video';
 
 let win: BrowserWindow = null;
 const args = process.argv.slice(1),
@@ -15,15 +18,14 @@ function createWindow(): BrowserWindow {
   win = new BrowserWindow({
     x: 0,
     y: 0,
-    width: size.width,
-    height: size.height,
+    width: size.width / 3,
+    height: size.height / 3,
     webPreferences: {
       nodeIntegration: true,
       allowRunningInsecureContent: (serve) ? true : false,
-      enableRemoteModule : false // true if you want to use remote module in renderer context (ie. Angular)
+      enableRemoteModule: false, // true if you want to use remote module in renderer context (e.g. Angular)
     },
   });
-
   if (serve) {
 
     win.webContents.openDevTools();
@@ -41,6 +43,21 @@ function createWindow(): BrowserWindow {
     }));
   }
 
+
+  // if (fs.existsSync(dest)) {
+  //   console.log('exists')
+  // } else {
+  //   console.log('LOGGING STUFF', ffmpeg.path, ffmpeg.version);
+  //   console.log('ALSO FFPROBE', ffprobe.path, ffprobe.version);
+
+  //   // ffbinaries.downloadBinaries(['ffmpeg', 'ffprobe'], { platform: ffbinaries.detectPlatform(), quiet: true, destination: dest }, function (err, data) {
+  //   //   console.log("err,data", err, data)
+  //   //   console.log('Downloaded ffplay and ffprobe binaries for linux-64 to ' + dest + '.');
+  //   // });
+  // }
+  console.log('LOGGING STUFF', ffmpeg.path, ffmpeg.version);
+  console.log('ALSO FFPROBE', ffprobe.path, ffprobe.version);
+
   // Emitted when the window is closed.
   win.on('closed', () => {
     // Dereference the window object, usually you would store window
@@ -52,11 +69,47 @@ function createWindow(): BrowserWindow {
   return win;
 }
 
+ipcMain.on('select-files', (event) => {
+  dialog.showOpenDialog({
+    properties: ['openFile', 'openDirectory', 'multiSelections'],
+    filters: [{ name: 'videosOnly', extensions: ['mkv'] }],
+  }).then(value => {
+    if (value.canceled) {
+      // User hit "cancel" on the file selector.
+      return;
+    }
+
+    value.filePaths.forEach(file => {
+      new Video(file, path.join(__dirname, '.tmp/'), { ffmpeg: ffmpeg.path, ffprobe: ffprobe.path })
+        .getInfo()
+        .then(val => {
+          const humanName = path.basename(val.format.filename);
+          event.sender.send('new-files', humanName, val);
+        });
+    });
+  })
+});
+
+ipcMain.on('extract-dialog', (event, vidPaths) => {
+  (async () => {
+    for (let i = 0; i < vidPaths.length; i++) {
+      const vidPath = vidPaths[i];
+      console.log('Extracting for file', vidPath);
+      const v = new Video(vidPath, path.join(__dirname, '.tmp/'), { ffmpeg: ffmpeg.path, ffprobe: ffprobe.path });
+      const sub = v.getProgress().subscribe(status => {
+        event.sender.send('progress-update', status);
+      })
+      await v.extractDialog()
+      sub.unsubscribe();
+    }
+  })();
+});
+
 try {
   // This method will be called when Electron has finished
   // initialization and is ready to create browser windows.
   // Some APIs can only be used after this event occurs.
-  // Added 400 ms to fix the black background issue while using transparent window. More detais at https://github.com/electron/electron/issues/15947
+  // Added 400 ms to fix the black background issue while using transparent window. More details at https://github.com/electron/electron/issues/15947
   app.on('ready', () => setTimeout(createWindow, 400));
 
   // Quit when all windows are closed.
