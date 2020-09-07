@@ -71,7 +71,7 @@ function createWindow(): BrowserWindow {
 
 ipcMain.on('select-files', (event) => {
   dialog.showOpenDialog({
-    properties: ['openFile', 'openDirectory', 'multiSelections'],
+    properties: ['openFile', 'multiSelections'],
     filters: [{ name: 'videosOnly', extensions: ['mkv'] }],
   }).then(value => {
     if (value.canceled) {
