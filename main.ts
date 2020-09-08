@@ -82,7 +82,6 @@ ipcMain.on('select-files', (event) => {
     });
 });
 
-
 const extractDialog = async (event: Electron.IpcMainEvent, vidPaths: string[]) => {
   for (let i = 0; i < vidPaths.length; i++) {
     const vidPath = vidPaths[i];

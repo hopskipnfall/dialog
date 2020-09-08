@@ -5,16 +5,15 @@ import * as fs from 'fs';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { FfpathsConfig } from './ffpaths';
 import * as moment from 'moment';
+import * as os from 'os';
 
 type Statuses =
   | 'NOT_STARTED'
   | 'EXTRACTING_SUBTITLES'
   | 'EXTRACTING_SUBTITLES_DONE'
-  | 'EXTRACTING_AUDIO'
-  | 'SPLITTING'
-  | 'SPLITTING_DONE'
-  | 'JOINING'
-  | 'DONE';
+  | 'EXTRACTING_DIALOG'
+  | 'DONE'
+  | 'ERROR';
 
 export interface ExtractionStatus {
   uri: string;
@@ -51,15 +50,33 @@ export class Video {
   }
 
   async extractDialog(): Promise<void> {
-    fs.mkdirSync(this.scratchPath, { recursive: true });
-    // TODO: This somehow throws a user-visible error but does not stop execution.
-    // Figure out how to catch this and prevent moving forward.
-    this.stream = fs.createWriteStream(
-      `${path.join(this.scratchPath, path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`);
-    await this.extractSubtitles();
-    const intervals = await this.getSubtitleIntervals();
-    const combined = this.combineIntervals(intervals);
-    await this.extractAudio(combined);
+    try {
+      this.scratchPath = fs.mkdtempSync(path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`));
+      console.log('Scratch path', this.scratchPath);
+      fs.mkdirSync(this.scratchPath, { recursive: true });
+      // TODO: This somehow throws a user-visible error but does not stop execution.
+      // Figure out how to catch this and prevent moving forward.
+      this.stream = fs.createWriteStream(
+        `${path.join(this.scratchPath, path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`);
+      await this.extractSubtitles();
+      const intervals = await this.getSubtitleIntervals();
+      const combined = this.combineIntervals(intervals);
+      await this.extractAudio(combined);
+      // Note: This doesn't throw an error when it fails (for example, with recursive: false)...
+      fs.rmdirSync(this.scratchPath, { recursive: true });
+
+      this.extractionProgress.next({
+        uri: this.videoPath, phase: 'DONE',
+        percentage: 100,
+      });
+      console.log('Extraction complete.');
+    } catch (e) {
+      this.extractionProgress.next({
+        uri: this.videoPath, phase: 'ERROR',
+        percentage: 100,
+      });
+      throw e;
+    }
   }
 
   private async toPromise(command: ffmpeg.FfmpegCommand, finish: (command: ffmpeg.FfmpegCommand) => void): Promise<any> {
@@ -68,7 +85,7 @@ export class Video {
         command
           .on('error', (err, stdout: string, stderr: string) => {
             console.error('SOMETHING WENT WRONG', err, stdout, stderr);
-            reject({err: err, stdout: stdout, stderr: stderr });
+            reject({ err: err, stdout: stdout, stderr: stderr });
           })
           .on('end', (stdout: string, stderr: string) => {
             resolve({ stdout: stdout, stderr: stderr });
@@ -88,17 +105,12 @@ export class Video {
         .format('mp3')
         .on('progress', progress => {
           this.extractionProgress.next({
-            uri: this.videoPath, phase: 'JOINING',
+            uri: this.videoPath, phase: 'EXTRACTING_DIALOG',
             percentage: ((1 / intervals.length) * (+progress.percent / 100) + i) * 100 / intervals.length,
           });
         });
       await this.toPromise(command, command => command.pipe(this.stream, i === max - 1 ? { end: true } : { end: false }));
     }
-
-    this.extractionProgress.next({
-      uri: this.videoPath, phase: 'DONE',
-      percentage: 100,
-    });
   }
 
   private async extractSubtitles() {
