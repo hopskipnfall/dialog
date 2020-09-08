@@ -29,8 +29,6 @@ function createWindow(): BrowserWindow {
   if (serve) {
 
     win.webContents.openDevTools();
-
-    // TODO --asar.unpackDir='{node_modules/@ffprobe-installer,node_modules/@ffmpeg-installer,.tmp}'
     require('electron-reload')(__dirname, {
       electron: require(`${__dirname}/node_modules/electron`)
     });
@@ -81,7 +79,6 @@ ipcMain.on('select-files', (event) => {
       event.sender.send('error', `Error occurred while selecting files: ${reason as string}`);
     });
 });
-
 
 const extractDialog = async (event: Electron.IpcMainEvent, vidPaths: string[]) => {
   for (let i = 0; i < vidPaths.length; i++) {
