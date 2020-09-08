@@ -54,10 +54,13 @@ export class Video {
       this.scratchPath = fs.mkdtempSync(path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`));
       console.log('Scratch path', this.scratchPath);
       fs.mkdirSync(this.scratchPath, { recursive: true });
+      // TODO: Is there a better way to find the "desktop" folder?
+      const outputFolder = path.join(os.homedir(), 'Desktop', 'Dialog');
+      fs.mkdirSync(outputFolder);
       // TODO: This somehow throws a user-visible error but does not stop execution.
       // Figure out how to catch this and prevent moving forward.
       this.stream = fs.createWriteStream(
-        `${path.join(os.homedir(), 'Desktop', path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`);
+        `${path.join(outputFolder, path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`);
       await this.extractSubtitles();
       const intervals = await this.getSubtitleIntervals();
       const combined = this.combineIntervals(intervals);
