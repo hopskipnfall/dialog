@@ -11,6 +11,7 @@ src/**/*.js
 extraction/**/*.js
 !src/karma.conf.js
 *.js.map
+/release-builds
 
 # dependencies
 /node_modules

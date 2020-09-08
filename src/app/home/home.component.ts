@@ -3,6 +3,8 @@ import { Router } from '@angular/router';
 import { VideoService } from '../video.service';
 import { Observable, Subscription } from 'rxjs';
 import { VideoModel } from 'app/shared/models/video-model';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { ElectronService } from 'app/core/services';
 
 @Component({
   selector: 'app-home',
@@ -14,7 +16,18 @@ export class HomeComponent implements OnInit, OnDestroy {
   videos: VideoModel[] = [];
   subs: Subscription[] = [];
 
-  constructor(private router: Router, private videoService: VideoService, private ref: ChangeDetectorRef, private ngZone: NgZone) {
+  constructor(
+    private router: Router,
+    private videoService: VideoService,
+    private ref: ChangeDetectorRef,
+    private ngZone: NgZone,
+    private modalService: NgbModal,
+    private electron: ElectronService,
+  ) {
+
+    this.electron.ipcRenderer.on('error', (event, error: string) => {
+      console.log('it died', event, error);
+    });
   }
   ngOnDestroy(): void {
 
