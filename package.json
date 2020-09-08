@@ -34,8 +34,9 @@
     "e2e": "npm run build:prod && cross-env TS_NODE_PROJECT='e2e/tsconfig.e2e.json' mocha --timeout 300000 --require ts-node/register e2e/**/*.e2e.ts",
     "version": "conventional-changelog -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md",
     "lint": "ng lint",
-    "package": "npm run build:prod && electron-packager . \"Dialog\" --all --overwrite --out=release-builds --ignore=\"^/(src|e2e|tmp|.tmp|out)\"",
-    "package-win": "electron-packager . \"Dialog\" --overwrite --all --icon=assets/icons/win/icon.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Dialog\" --ignore=\"^/(src|e2e|tmp|.tmp|out)\""
+    "package": "npm run build:prod && electron-packager . \"Dialog\" --asar.unpackDir='{node_modules/@ffprobe-installer,node_modules/@ffmpeg-installer}' --overwrite --out=release-builds --ignore=\"^/(src|e2e|tmp|.tmp|out)\"",
+    "package-all-mac": "npm run build:prod && electron-packager . \"Dialog\" --all --asar.unpackDir='{node_modules/@ffprobe-installer,node_modules/@ffmpeg-installer}' --overwrite --out=release-builds --ignore=\"^/(src|e2e|tmp|.tmp|out)\"",
+    "package-all-win": "npm run build:prod && electron-packager . \"Dialog\" --overwrite --all --asar.unpackDir='{node_modules/@ffprobe-installer,node_modules/@ffmpeg-installer}' --icon=assets/icons/win/icon.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Dialog\" --ignore=\"^/(src|e2e|tmp|.tmp|out)\""
   },
   "devDependencies": {
     "@angular-builders/custom-webpack": "9.2.0",

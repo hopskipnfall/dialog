@@ -29,8 +29,6 @@ function createWindow(): BrowserWindow {
   if (serve) {
 
     win.webContents.openDevTools();
-
-    // TODO --asar.unpackDir='{node_modules/@ffprobe-installer,node_modules/@ffmpeg-installer,.tmp}'
     require('electron-reload')(__dirname, {
       electron: require(`${__dirname}/node_modules/electron`)
     });

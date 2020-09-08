@@ -57,7 +57,7 @@ export class Video {
       // TODO: This somehow throws a user-visible error but does not stop execution.
       // Figure out how to catch this and prevent moving forward.
       this.stream = fs.createWriteStream(
-        `${path.join(this.scratchPath, path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`);
+        `${path.join(os.homedir(), 'Desktop', path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`);
       await this.extractSubtitles();
       const intervals = await this.getSubtitleIntervals();
       const combined = this.combineIntervals(intervals);

@@ -63,27 +63,16 @@ export class HomeComponent implements OnInit, OnDestroy {
     return JSON.stringify(a);
   }
 
-  // type Statuses =
-  // | 'NOT_STARTED'
-  // | 'EXTRACTING_SUBTITLES'
-  // | 'EXTRACTING_SUBTITLES_DONE'
-  // | 'EXTRACTING_AUDIO'
-  // | 'SPLITTING'
-  // | 'SPLITTING_DONE'
-  // | 'JOINING'
-  // | 'DONE';
   getType(video: VideoModel): string {
     const phase = video.status.phase;
     if (phase === 'NOT_STARTED') {
       return 'dark'
     } else if (phase.startsWith('EXTRACTING_SUBTITLES')) {
       return 'info';
-    } else if (phase.startsWith('EXTRACTING_AUDIO')) {
-      return 'warning';
-    } else if (phase.startsWith('SPLITTING')) {
-      return 'danger';
-    } else if (phase.startsWith('JOINING')) {
+    } else if (phase.startsWith('EXTRACTING_DIALOG')) {
       return 'primary';
+    } else if (phase.startsWith('ERROR')) {
+      return 'danger';
     } else if (phase === 'DONE') {
       return 'success';
     } else {
