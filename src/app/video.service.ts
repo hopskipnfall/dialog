@@ -48,6 +48,10 @@ export class VideoService implements OnDestroy {
     return this.videosSubject;
   }
 
+  getCurrentVideos(): VideoModel[] {
+    return this.videosSubject.getValue();
+  }
+
   ngOnDestroy(): void {
     this.electron.ipcRenderer.removeAllListeners('new-files');
     this.electron.ipcRenderer.removeAllListeners('progress-update');

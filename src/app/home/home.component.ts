@@ -20,8 +20,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     private router: Router,
     private videoService: VideoService,
     private ref: ChangeDetectorRef,
-    private ngZone: NgZone,
-    private modalService: NgbModal,
     private electron: ElectronService,
   ) {
 
