@@ -1,38 +1,84 @@
 <p>wizard works!</p>
 
+<a routerLink="/">{{ "PAGES.HOME.GO_TO_DETAIL" | translate }}</a>
+
+<br />
+
 <mat-vertical-stepper [linear]="false" #stepper>
-  <mat-step [stepControl]="firstFormGroup">
-    <form [formGroup]="firstFormGroup">
-      <ng-template matStepLabel>Fill out your name</ng-template>
-      <mat-form-field>
-        <mat-label>Name</mat-label>
-        <input matInput placeholder="Last name, First name" formControlName="firstCtrl" required>
-      </mat-form-field>
-      <div>
-        <button mat-button matStepperNext>Next</button>
-      </div>
-    </form>
-  </mat-step>
-  <mat-step [stepControl]="secondFormGroup">
-    <form [formGroup]="secondFormGroup">
-      <ng-template matStepLabel>Fill out your address</ng-template>
-      <mat-form-field>
-        <mat-label>Address</mat-label>
-        <input matInput formControlName="secondCtrl" placeholder="Ex. 1 Main St, New York, NY"
-               required>
-      </mat-form-field>
-      <div>
-        <button mat-button matStepperPrevious>Back</button>
-        <button mat-button matStepperNext>Next</button>
-      </div>
-    </form>
+  <mat-step>
+    <ng-template matStepLabel>Choose audio/subtitle tracks</ng-template>
+    <ul class="list-group">
+      <li class="list-group-item" *ngFor="let formVideo of formVideos">
+        {{ formVideo.video.filename }}
+        <br />
+
+        Audio tracks
+
+        <br />
+
+        <div
+          class="btn-group btn-group-toggle"
+          ngbRadioGroup
+          name="radioBasic"
+          [(ngModel)]="formVideo.audioStream"
+        >
+          <label
+            ngbButtonLabel
+            class="btn-primary"
+            *ngFor="let track of getAudioTracks(formVideo.video)"
+          >
+            <input ngbButton type="radio" [value]="track" />
+            {{ getName(track) }}
+          </label>
+        </div>
+        <br />
+
+        Subtitle tracks
+        <br />
+
+        <div
+          class="btn-group btn-group-toggle"
+          ngbRadioGroup
+          name="radioBasic"
+          [(ngModel)]="formVideo.subtitleStream"
+        >
+          <label
+            ngbButtonLabel
+            class="btn-primary"
+            *ngFor="let track of getSubtitleTracks(formVideo.video)"
+          >
+            <input ngbButton type="radio" [value]="track" />
+            {{ getName(track) }}
+          </label>
+        </div>
+      </li>
+    </ul>
+
+    <br />
+    <div>
+      <button mat-button matStepperNext class="btn btn-primary">Next</button>
+    </div>
   </mat-step>
   <mat-step>
-    <ng-template matStepLabel>Done</ng-template>
+    <ng-template matStepLabel>Pick chapters to ignore</ng-template>
+    <mat-form-field>
+      <mat-label>Address</mat-label>
+      <input matInput placeholder="Ex. 1 Main St, New York, NY" required />
+    </mat-form-field>
+    <div>
+      <button mat-button matStepperPrevious class="btn btn-primary">
+        Back
+      </button>
+      <button mat-button matStepperNext class="btn btn-primary">Next</button>
+    </div>
+  </mat-step>
+  <mat-step>
+    <ng-template matStepLabel>Extract dialog</ng-template>
     <p>You are now done.</p>
     <div>
-      <button mat-button matStepperPrevious>Back</button>
-      <button mat-button (click)="stepper.reset()">Reset</button>
+      <button mat-button matStepperPrevious class="btn btn-primary">
+        Back
+      </button>
     </div>
   </mat-step>
 </mat-vertical-stepper>

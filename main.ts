@@ -58,7 +58,7 @@ function createWindow(): BrowserWindow {
 const selectFiles = async (event: Electron.IpcMainEvent) => {
   const value = await dialog.showOpenDialog({
     properties: ['openFile', 'multiSelections'],
-    filters: [{ name: 'videosOnly', extensions: ['mkv'] }],
+    // filters: [{ name: 'videosOnly', extensions: ['mkv'] }],
   });
   if (value.canceled) {
     // User hit "cancel" on the file selector.
