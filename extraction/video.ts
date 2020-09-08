@@ -50,14 +50,16 @@ export class Video {
     });
   }
 
-  async extractDialog(): Promise<any> {
+  async extractDialog(): Promise<void> {
     fs.mkdirSync(this.scratchPath, { recursive: true });
-    this.stream = fs.createWriteStream(`${path.basename(this.videoPath, path.extname(this.videoPath))}.mp3`);
+    // TODO: This somehow throws a user-visible error but does not stop execution.
+    // Figure out how to catch this and prevent moving forward.
+    this.stream = fs.createWriteStream(
+      `${path.join(this.scratchPath, path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`);
     await this.extractSubtitles();
-    const val = await this.getSubtitleIntervals();
-    const combined = this.combineIntervals(val);
-    await this.extractSegment(combined);
-    console.error('marking as resolved');
+    const intervals = await this.getSubtitleIntervals();
+    const combined = this.combineIntervals(intervals);
+    await this.extractAudio(combined);
   }
 
   private async toPromise(command: ffmpeg.FfmpegCommand, finish: (command: ffmpeg.FfmpegCommand) => void): Promise<any> {
@@ -66,7 +68,7 @@ export class Video {
         command
           .on('error', (err, stdout: string, stderr: string) => {
             console.error('SOMETHING WENT WRONG', err, stdout, stderr);
-            reject({ stdout: stdout, stderr: stderr });
+            reject({err: err, stdout: stdout, stderr: stderr });
           })
           .on('end', (stdout: string, stderr: string) => {
             resolve({ stdout: stdout, stderr: stderr });
@@ -75,8 +77,7 @@ export class Video {
   }
 
   /** Synchronously extracts segments. */
-  private async extractSegment(intervals: Interval[]) {
-
+  private async extractAudio(intervals: Interval[]) {
     for (let i = 0, max = intervals.length; i < max; i++) {//intervals.length; i++) {
       const interval = intervals[i];
       const command = ffmpeg(this.videoPath)

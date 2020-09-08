@@ -33,7 +33,9 @@
     "test:watch": "ng test",
     "e2e": "npm run build:prod && cross-env TS_NODE_PROJECT='e2e/tsconfig.e2e.json' mocha --timeout 300000 --require ts-node/register e2e/**/*.e2e.ts",
     "version": "conventional-changelog -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "package": "npm run build:prod && electron-packager . \"Dialog\" --all --overwrite --out=release-builds --ignore=\"^/(src|e2e|tmp|.tmp|out)\"",
+    "package-win": "electron-packager . \"Dialog\" --overwrite --all --icon=assets/icons/win/icon.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Dialog\" --ignore=\"^/(src|e2e|tmp|.tmp|out)\""
   },
   "devDependencies": {
     "@angular-builders/custom-webpack": "9.2.0",
@@ -68,6 +70,7 @@
     "cross-env": "7.0.2",
     "electron": "10.1.0",
     "electron-builder": "22.8.0",
+    "electron-packager": "15.1.0",
     "electron-reload": "1.5.0",
     "eslint": "7.7.0",
     "eslint-plugin-import": "2.22.0",
@@ -79,7 +82,6 @@
     "karma-jasmine": "4.0.1",
     "karma-jasmine-html-reporter": "1.5.4",
     "mocha": "8.1.3",
-    "moment": "2.27.0",
     "npm-run-all": "4.1.5",
     "spectron": "11.1.0",
     "ts-node": "9.0.0",
@@ -99,6 +101,7 @@
     "@ng-bootstrap/ng-bootstrap": "7.0.0",
     "bootstrap": "^4.5.0",
     "fluent-ffmpeg": "2.1.2",
+    "moment": "2.27.0",
     "rxjs": "6.6.2"
   }
 }

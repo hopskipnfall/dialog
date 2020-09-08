@@ -18,8 +18,8 @@ function createWindow(): BrowserWindow {
   win = new BrowserWindow({
     x: 0,
     y: 0,
-    width: size.width / 3,
-    height: size.height / 3,
+    width: 560,
+    height: 660,
     webPreferences: {
       nodeIntegration: true,
       allowRunningInsecureContent: (serve) ? true : false,
@@ -30,6 +30,7 @@ function createWindow(): BrowserWindow {
 
     win.webContents.openDevTools();
 
+    // TODO --asar.unpackDir='{node_modules/@ffprobe-installer,node_modules/@ffmpeg-installer,.tmp}'
     require('electron-reload')(__dirname, {
       electron: require(`${__dirname}/node_modules/electron`)
     });
@@ -41,22 +42,9 @@ function createWindow(): BrowserWindow {
       protocol: 'file:',
       slashes: true
     }));
+
+    win.webContents.openDevTools(); // DO NOT SUBMIT.
   }
-
-
-  // if (fs.existsSync(dest)) {
-  //   console.log('exists')
-  // } else {
-  //   console.log('LOGGING STUFF', ffmpeg.path, ffmpeg.version);
-  //   console.log('ALSO FFPROBE', ffprobe.path, ffprobe.version);
-
-  //   // ffbinaries.downloadBinaries(['ffmpeg', 'ffprobe'], { platform: ffbinaries.detectPlatform(), quiet: true, destination: dest }, function (err, data) {
-  //   //   console.log("err,data", err, data)
-  //   //   console.log('Downloaded ffplay and ffprobe binaries for linux-64 to ' + dest + '.');
-  //   // });
-  // }
-  console.log('LOGGING STUFF', ffmpeg.path, ffmpeg.version);
-  console.log('ALSO FFPROBE', ffprobe.path, ffprobe.version);
 
   // Emitted when the window is closed.
   win.on('closed', () => {
@@ -69,40 +57,53 @@ function createWindow(): BrowserWindow {
   return win;
 }
 
-ipcMain.on('select-files', (event) => {
-  dialog.showOpenDialog({
-    properties: ['openFile', 'openDirectory', 'multiSelections'],
+const selectFiles = async (event: Electron.IpcMainEvent) => {
+  const value = await dialog.showOpenDialog({
+    properties: ['openFile', 'multiSelections'],
     filters: [{ name: 'videosOnly', extensions: ['mkv'] }],
-  }).then(value => {
-    if (value.canceled) {
-      // User hit "cancel" on the file selector.
-      return;
-    }
+  });
+  if (value.canceled) {
+    // User hit "cancel" on the file selector.
+    return;
+  }
 
-    value.filePaths.forEach(file => {
-      new Video(file, path.join(__dirname, '.tmp/'), { ffmpeg: ffmpeg.path, ffprobe: ffprobe.path })
-        .getInfo()
-        .then(val => {
-          const humanName = path.basename(val.format.filename);
-          event.sender.send('new-files', humanName, val);
-        });
+  for (const file of value.filePaths) {
+    const val = await new Video(file, path.join(__dirname, '.tmp/'), { ffmpeg: ffmpeg.path.replace('app.asar', 'app.asar.unpacked'), ffprobe: ffprobe.path.replace('app.asar', 'app.asar.unpacked') })
+      .getInfo();
+    const humanName = path.basename(val.format.filename);
+    event.sender.send('new-files', humanName, val);
+  }
+}
+
+ipcMain.on('select-files', (event) => {
+  selectFiles(event)
+    .catch(reason => {
+      event.sender.send('error', `Error occurred while selecting files: ${reason as string}`);
     });
-  })
 });
 
+
+const extractDialog = async (event: Electron.IpcMainEvent, vidPaths: string[]) => {
+  for (let i = 0; i < vidPaths.length; i++) {
+    const vidPath = vidPaths[i];
+    console.log('Extracting for file', vidPath);
+    const v = new Video(vidPath, path.join(__dirname, '.tmp/'), {
+      ffmpeg: ffmpeg.path.replace('app.asar', 'app.asar.unpacked'),
+      ffprobe: ffprobe.path.replace('app.asar', 'app.asar.unpacked'),
+    });
+    const sub = v.getProgress().subscribe(status => {
+      event.sender.send('progress-update', status);
+    });
+    await v.extractDialog();
+    sub.unsubscribe();
+  }
+};
+
 ipcMain.on('extract-dialog', (event, vidPaths) => {
-  (async () => {
-    for (let i = 0; i < vidPaths.length; i++) {
-      const vidPath = vidPaths[i];
-      console.log('Extracting for file', vidPath);
-      const v = new Video(vidPath, path.join(__dirname, '.tmp/'), { ffmpeg: ffmpeg.path, ffprobe: ffprobe.path });
-      const sub = v.getProgress().subscribe(status => {
-        event.sender.send('progress-update', status);
-      })
-      await v.extractDialog()
-      sub.unsubscribe();
-    }
-  })();
+  extractDialog(event, vidPaths)
+    .catch(reason => {
+      event.sender.send('error', `Error occurred while extracting dialog: ${JSON.stringify(reason)}`);
+    });
 });
 
 try {
