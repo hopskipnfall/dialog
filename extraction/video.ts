@@ -42,7 +42,7 @@ export class Video {
 
   getInfo(): Promise<ffmpeg.FfprobeData> {
     return new Promise((resolve, reject) => {
-      ffmpeg.ffprobe(this.videoPath, (err, data) => {
+      ffmpeg.ffprobe(this.videoPath, ['-show_chapters'], (err, data) => {
         if (data) resolve(data);
         if (err) reject(err);
       });

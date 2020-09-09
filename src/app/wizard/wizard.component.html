@@ -27,7 +27,12 @@
             class="btn-primary"
             *ngFor="let track of getAudioTracks(formVideo.video)"
           >
-            <input ngbButton type="radio" [value]="track" />
+            <input
+              ngbButton
+              type="radio"
+              [value]="track"
+              [disabled]="getAudioTracks(formVideo.video).length < 2"
+            />
             {{ getName(track) }}
           </label>
         </div>
@@ -47,7 +52,12 @@
             class="btn-primary"
             *ngFor="let track of getSubtitleTracks(formVideo.video)"
           >
-            <input ngbButton type="radio" [value]="track" />
+            <input
+              ngbButton
+              type="radio"
+              [value]="track"
+              [disabled]="getAudioTracks(formVideo.video).length < 2"
+            />
             {{ getName(track) }}
           </label>
         </div>
@@ -61,10 +71,26 @@
   </mat-step>
   <mat-step>
     <ng-template matStepLabel>Pick chapters to ignore</ng-template>
-    <mat-form-field>
-      <mat-label>Address</mat-label>
-      <input matInput placeholder="Ex. 1 Main St, New York, NY" required />
-    </mat-form-field>
+
+    Found the following labeled chapters in the videos you selected. Chose the
+    chapters you want to not appear in the output.
+
+    <ul class="list-group">
+      <li
+        class="list-group-item list-group-item-action"
+        *ngFor="let chapter of chapterSummaries"
+        [ngClass]="{ active: isIgnoredChapter(chapter) }"
+        (click)="chapterClicked(chapter)"
+      >
+        {{ chapter.title }} (median {{ chapter.medianStart }} -
+        {{ chapter.medianEnd }})
+        <br />
+        Found in {{ chapter.count }} video(s).
+      </li>
+    </ul>
+
+    <br />
+
     <div>
       <button mat-button matStepperPrevious class="btn btn-primary">
         Back
