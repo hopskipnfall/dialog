@@ -16,6 +16,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { CoreModule } from './core/core.module';
 import { DetailModule } from './detail/detail.module';
 import { HomeModule } from './home/home.module';
+import {MatIconModule} from '@angular/material/icon';
 import { SharedModule } from './shared/shared.module';
 import { WizardComponent } from './wizard/wizard.component';
 
@@ -28,18 +29,19 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
   declarations: [AppComponent, WizardComponent],
   imports: [
     AppRoutingModule,
+    BrowserAnimationsModule,
     BrowserModule,
     CoreModule,
     DetailModule,
     FormsModule,
     HomeModule,
     HttpClientModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
     MatStepperModule,
     NgbModule,
     ReactiveFormsModule,
-    BrowserAnimationsModule,
-    MatFormFieldModule,
-    MatInputModule,
     SharedModule,
     TranslateModule.forRoot({
       loader: {

@@ -79,13 +79,35 @@
       <li
         class="list-group-item list-group-item-action"
         *ngFor="let chapter of chapterSummaries"
-        [ngClass]="{ active: isIgnoredChapter(chapter) }"
-        (click)="chapterClicked(chapter)"
       >
-        {{ chapter.title }} (median {{ chapter.medianStart }} -
-        {{ chapter.medianEnd }})
-        <br />
-        Found in {{ chapter.count }} video(s).
+        <div class="chapter-container">
+          <div class="chapter-content-container">
+            {{ chapter.title }} (median {{ chapter.medianStart }} -
+            {{ chapter.medianEnd }})
+            <br />
+            Found in {{ chapter.count }} video(s).
+          </div>
+          <div class="chapter-button-container">
+            <div class="btn-group btn-group-toggle">
+              <label class="btn-primary" ngbButtonLabel>
+                <input
+                  type="checkbox"
+                  ngbButton
+                  [valueChecked]="isIgnoredChapter(chapter)"
+                  (click)="chapterClicked(chapter)"
+                />
+                {{ isIgnoredChapter(chapter) ? "Ignored" : "Ignore" }}
+                <mat-icon
+                  aria-hidden="false"
+                  aria-label="Example home icon"
+                  inline="true"
+                  *ngIf="isIgnoredChapter(chapter)"
+                  >check_circle</mat-icon
+                >
+              </label>
+            </div>
+          </div>
+        </div>
       </li>
     </ul>
 

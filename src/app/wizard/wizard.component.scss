@@ -5,3 +5,16 @@
 .mat-form-field {
   margin-top: 16px;
 }
+
+.chapter-container {
+  display: flex;
+  flex-direction: row;
+}
+
+.chapter-content-container {
+  flex-grow: 1;
+}
+
+.chapter-buttons-container {
+  flex-basis: auto;
+}
