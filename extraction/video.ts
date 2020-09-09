@@ -19,6 +19,7 @@ export interface ExtractionStatus {
   uri: string;
   phase: Statuses;
   percentage: number;
+  debug?: unknown;
 }
 
 export interface Interval {
@@ -56,7 +57,9 @@ export class Video {
       fs.mkdirSync(this.scratchPath, { recursive: true });
       // TODO: Is there a better way to find the "desktop" folder?
       const outputFolder = path.join(os.homedir(), 'Desktop', 'Dialog');
-      fs.mkdirSync(outputFolder);
+      if (!fs.existsSync(outputFolder)) {
+        fs.mkdirSync(outputFolder);
+      }
       // TODO: This somehow throws a user-visible error but does not stop execution.
       // Figure out how to catch this and prevent moving forward.
       this.stream = fs.createWriteStream(
@@ -77,9 +80,50 @@ export class Video {
       this.extractionProgress.next({
         uri: this.videoPath, phase: 'ERROR',
         percentage: 100,
+        debug: e,
       });
       throw e;
     }
+  }
+
+  async extractDialogNew(config: any): Promise<void> {
+    try {
+      this.scratchPath = fs.mkdtempSync(path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`));
+      console.log('Scratch path', this.scratchPath);
+      fs.mkdirSync(this.scratchPath, { recursive: true });
+      // TODO: Is there a better way to find the "desktop" folder?
+      const outputFolder = path.join(os.homedir(), 'Desktop', 'Dialog');
+      if (!fs.existsSync(outputFolder)) {
+        fs.mkdirSync(outputFolder);
+      }
+      // TODO: This somehow throws a user-visible error but does not stop execution.
+      // Figure out how to catch this and prevent moving forward.
+      this.stream = fs.createWriteStream(
+        `${path.join(outputFolder, path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`);
+      await this.extractSubtitles(config.subtitleStream);
+      const intervals = await this.getSubtitleIntervals();
+      let combined = this.combineIntervals(intervals);
+      combined = this.subtractChapters(combined, config.ignoredChapters);
+      await this.extractAudio(combined, config.audioStream);
+      // Note: This doesn't throw an error when it fails (for example, with recursive: false)...
+      fs.rmdirSync(this.scratchPath, { recursive: true });
+
+      this.extractionProgress.next({
+        uri: this.videoPath, phase: 'DONE',
+        percentage: 100,
+      });
+      console.log('Extraction complete.');
+    } catch (e) {
+      this.extractionProgress.next({
+        uri: this.videoPath, phase: 'ERROR',
+        percentage: 100,
+      });
+      throw e;
+    }
+  }
+
+  private subtractChapters(combined: Interval[], chapters: string[]) {
+    return combined; // TODO: do something with the chapters.
   }
 
   private async toPromise(command: ffmpeg.FfmpegCommand, finish: (command: ffmpeg.FfmpegCommand) => void): Promise<any> {
@@ -97,12 +141,14 @@ export class Video {
   }
 
   /** Synchronously extracts segments. */
-  private async extractAudio(intervals: Interval[]) {
-    for (let i = 0, max = intervals.length; i < max; i++) {//intervals.length; i++) {
+  private async extractAudio(intervals: Interval[], stream?: ffmpeg.FfprobeStream) {
+    const track = stream ? stream.index : 2; // TODO: get rid of 2
+
+    for (let i = 0, max = intervals.length; i < max; i++) {
       const interval = intervals[i];
       const command = ffmpeg(this.videoPath)
         .noVideo()
-        .outputOption(`-ss`, `${interval.start}`, `-to`, `${interval.end}`)//, "-q:a", "0", "-map", "a")
+        .outputOption(`-ss`, `${interval.start}`, `-to`, `${interval.end}`, '-map', `0:${track}`)//, "-q:a", "0", "-map", "a")
         .audioBitrate('128k')
         .audioCodec('libmp3lame')
         .format('mp3')
@@ -116,9 +162,10 @@ export class Video {
     }
   }
 
-  private async extractSubtitles() {
+  private async extractSubtitles(stream?: ffmpeg.FfprobeStream) {
+    const track = stream ? stream.index : 2; // TODO: get rid of 2
     const command = ffmpeg(this.videoPath)
-      .outputOption('-map 0:2')
+      .outputOption(`-map 0:${track}`)
       .saveToFile(path.join(this.scratchPath, 'subs.srt'))
       .on('progress', progress => {
         this.extractionProgress.next({ uri: this.videoPath, phase: 'EXTRACTING_SUBTITLES', percentage: progress.percent });

@@ -11,6 +11,7 @@ type VideoFormSelection = {
   video: VideoModel
   subtitleStream?: ffmpeg.FfprobeStream
   audioStream: ffmpeg.FfprobeStream
+  ignoreIntervals: {start: number, end: number}[]
 };
 
 type ChapterSummary = {
@@ -33,6 +34,9 @@ export class WizardComponent implements OnInit {
   isLinear = false;
   firstFormGroup: FormGroup;
   secondFormGroup: FormGroup;
+
+  // Whether user can go back and make changes in the stepper.
+  editable = true;
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -86,6 +90,17 @@ export class WizardComponent implements OnInit {
     }).sort((a, b) => (a.medianStart > b.medianStart) ? 1 : ((b.medianStart > a.medianStart) ? -1 : 0));
   }
 
+  extract(): void {
+    this.editable = false;
+
+    this.videoService.queueExtraction({
+      video: this.formVideos[0].video,
+      audioStream: this.formVideos[0].audioStream,
+      subtitleStream: this.formVideos[0].subtitleStream,
+      ignoredChapters: this.ignoredChapterTitles,
+    });
+  }
+
   private humanize(duration: moment.Duration) {
     return `${duration.hours()}:${`${duration.minutes()}`.padStart(2, '0')}:${`${duration.seconds()}`.padStart(2, '0')}`
   }
@@ -112,6 +127,7 @@ export class WizardComponent implements OnInit {
       video,
       subtitleStream: this.getSubtitleTracks(video)[0],
       audioStream: this.getAudioTracks(video)[0],
+      ignoreIntervals: [],
     };
   }
 

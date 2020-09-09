@@ -9,12 +9,13 @@
 .chapter-container {
   display: flex;
   flex-direction: row;
-}
 
-.chapter-content-container {
-  flex-grow: 1;
-}
+  .chapter-content-container {
+    flex-grow: 1;
+  }
 
-.chapter-buttons-container {
-  flex-basis: auto;
+  .chapter-button-container {
+    flex-basis: auto;
+    white-space: nowrap;
+  }
 }

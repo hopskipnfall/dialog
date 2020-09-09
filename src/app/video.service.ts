@@ -4,12 +4,21 @@ import { ElectronService } from './core/services';
 import { VideoModel, ExtractionStatus } from './shared/models/video-model';
 import { BehaviorSubject, Observable } from 'rxjs';
 
+export interface VideoExtractionConfig {
+  video: VideoModel
+  subtitleStream?: ffmpeg.FfprobeStream
+  audioStream: ffmpeg.FfprobeStream
+  ignoredChapters: string[]
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class VideoService implements OnDestroy {
   private videos: VideoModel[] = [];
   private videosSubject: BehaviorSubject<VideoModel[]> = new BehaviorSubject(this.videos);
+
+  private extractionQueue: VideoExtractionConfig[] = [];
 
   constructor(private electron: ElectronService) {
 
@@ -34,6 +43,10 @@ export class VideoService implements OnDestroy {
 
   private notifyVideos() {
     this.videosSubject.next([...this.videos]);
+  }
+
+  queueExtraction(videoConfig: VideoExtractionConfig): void {
+    this.electron.ipcRenderer.send('extract-dialog-new', [videoConfig]);
   }
 
   addVideos() {

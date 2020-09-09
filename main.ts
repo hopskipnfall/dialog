@@ -4,6 +4,7 @@ import { app, BrowserWindow, dialog, ipcMain, screen } from 'electron';
 import * as path from 'path';
 import * as url from 'url';
 import { Video } from './extraction/video';
+import { FfprobeData } from 'fluent-ffmpeg';
 
 let win: BrowserWindow = null;
 const args = process.argv.slice(1),
@@ -99,7 +100,34 @@ const extractDialog = async (event: Electron.IpcMainEvent, vidPaths: string[]) =
 ipcMain.on('extract-dialog', (event, vidPaths) => {
   extractDialog(event, vidPaths)
     .catch(reason => {
-      event.sender.send('error', `Error occurred while extracting dialog: ${JSON.stringify(reason)}`);
+      event.sender.send('error', `Error occurred while extracting dialog: ${JSON.stringify(reason)} ${reason as string}`);
+    });
+});
+
+const extractDialogNew = async (event: Electron.IpcMainEvent, vidConfigs: any[]) => {
+  console.log('VidConfigs!', vidConfigs);
+
+  for (let i = 0; i < vidConfigs.length; i++) {
+    const vidConfig = vidConfigs[i];
+
+    const myUri = vidConfig.video.ffprobeData.format.filename; //(vidConfig.video.ffprobeData.format as FfprobeData).format.filename;
+    console.log('Extracting for file', myUri);
+    const v = new Video(myUri, path.join(__dirname, '.tmp/'), {
+      ffmpeg: ffmpeg.path.replace('app.asar', 'app.asar.unpacked'),
+      ffprobe: ffprobe.path.replace('app.asar', 'app.asar.unpacked'),
+    });
+    const sub = v.getProgress().subscribe(status => {
+      event.sender.send('progress-update', status);
+    });
+    await v.extractDialogNew(vidConfig);
+    sub.unsubscribe();
+  }
+};
+
+ipcMain.on('extract-dialog-new', (event, vidConfigs) => {
+  extractDialogNew(event, vidConfigs)
+    .catch(reason => {
+      event.sender.send('error', `Error occurred while extracting dialog: ${reason as string}`);
     });
 });
 
