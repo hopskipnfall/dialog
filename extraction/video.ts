@@ -6,6 +6,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { FfpathsConfig } from './ffpaths';
 import * as moment from 'moment';
 import * as os from 'os';
+import { cursorTo } from 'readline';
 
 type Statuses =
   | 'NOT_STARTED'
@@ -103,7 +104,7 @@ export class Video {
       await this.extractSubtitles(config.subtitleStream);
       const intervals = await this.getSubtitleIntervals();
       let combined = this.combineIntervals(intervals);
-      combined = this.subtractChapters(combined, config.ignoredChapters);
+      combined = await this.subtractChapters(combined, config.ignoredChapters);
       await this.extractAudio(combined, config.audioStream);
       // Note: This doesn't throw an error when it fails (for example, with recursive: false)...
       fs.rmdirSync(this.scratchPath, { recursive: true });
@@ -122,8 +123,41 @@ export class Video {
     }
   }
 
-  private subtractChapters(combined: Interval[], chapters: string[]) {
-    return combined; // TODO: do something with the chapters.
+  private async subtractChapters(combined: Interval[], chapters: string[]): Promise<Interval[]> {
+    const info = await this.getInfo();
+
+    const chapterIntervals: Interval[] = [];
+    chapters.forEach(chap =>
+      info.chapters.filter(c => c['TAG:title'] === chap)
+        .forEach(c => chapterIntervals.push({
+          start: this.formalize(moment.duration(c.start_time, 'seconds')),
+          end: this.formalize(moment.duration(c.end_time, 'seconds')),
+        })));
+
+    let out: Interval[] = [...combined];
+
+    for (const chapter of chapterIntervals) {
+      const revision = [];
+      for (const ivl of out) {
+        const cur: Interval = {start: ivl.start, end: ivl.end};
+        if (cur.start > chapter.start && cur.start < chapter.end) {
+          cur.start = chapter.end;
+        }
+        if (cur.end > chapter.start && cur.end < chapter.end) {
+          cur.end = chapter.start;
+        }
+        if (cur.start < cur.end) {
+          revision.push(cur);
+        }
+      }
+      out = revision;
+    }
+
+    return out;
+  }
+
+  private formalize(duration: moment.Duration): string {
+    return `${`${duration.hours()}`.padStart(2, '0')}:${`${duration.minutes()}`.padStart(2, '0')}:${`${duration.seconds()}`.padStart(2, '0')}.${`${duration.milliseconds()}`.padStart(3, '0')}`
   }
 
   private async toPromise(command: ffmpeg.FfmpegCommand, finish: (command: ffmpeg.FfmpegCommand) => void): Promise<any> {

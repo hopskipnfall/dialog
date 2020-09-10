@@ -1,10 +1,9 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { VideoService } from '../video.service';
-import { Observable, Subscription } from 'rxjs';
-import { VideoModel } from 'app/shared/models/video-model';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ElectronService } from 'app/core/services';
+import { VideoModel } from 'app/shared/models/video-model';
+import { Subscription } from 'rxjs';
+import { VideoService } from '../video.service';
 
 @Component({
   selector: 'app-home',
@@ -22,7 +21,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     private ref: ChangeDetectorRef,
     private electron: ElectronService,
   ) {
-
     this.electron.ipcRenderer.on('error', (event, error: string) => {
       console.log('it died', event, error);
     });
@@ -32,7 +30,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // this.videos = videoService.getVideos();
     this.subs.push(
       this.videoService.getVideos().subscribe(videos => {
         console.log('GETTING NEW VIDEOS NOW');
