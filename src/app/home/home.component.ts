@@ -50,10 +50,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.videoService.addVideos()
   }
 
-  start() {
-    this.videoService.start()
-  }
-
   stringify(a: unknown): string {
     return JSON.stringify(a);
   }

@@ -3,6 +3,7 @@ import * as ffmpeg from 'fluent-ffmpeg';
 import { ElectronService } from './core/services';
 import { VideoModel, ExtractionStatus } from './shared/models/video-model';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { Router } from '@angular/router';
 
 export interface VideoExtractionConfig {
   video: VideoModel
@@ -20,7 +21,10 @@ export class VideoService implements OnDestroy {
 
   private extractionQueue: VideoExtractionConfig[] = [];
 
-  constructor(private electron: ElectronService) {
+  constructor(
+    private electron: ElectronService,
+    private router: Router,
+    ) {
 
     // New videos are added.
     this.electron.ipcRenderer.on('new-files', (event, filename: string, ffprobeData: ffmpeg.FfprobeData) => {
@@ -45,16 +49,13 @@ export class VideoService implements OnDestroy {
     this.videosSubject.next([...this.videos]);
   }
 
-  queueExtraction(videoConfig: VideoExtractionConfig): void {
-    this.electron.ipcRenderer.send('extract-dialog-new', [videoConfig]);
+  queueExtraction(videoConfigs: VideoExtractionConfig[]): void {
+    this.electron.ipcRenderer.send('extract-dialog-new', videoConfigs);
+    this.router.navigateByUrl('/');
   }
 
   addVideos() {
     this.electron.ipcRenderer.send('select-files');
-  }
-
-  start() {
-    this.electron.ipcRenderer.send('extract-dialog', this.videos.map(v => v.ffprobeData.format.filename));
   }
 
   getVideos(): Observable<VideoModel[]> {

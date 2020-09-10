@@ -81,30 +81,7 @@ ipcMain.on('select-files', (event) => {
     });
 });
 
-const extractDialog = async (event: Electron.IpcMainEvent, vidPaths: string[]) => {
-  for (let i = 0; i < vidPaths.length; i++) {
-    const vidPath = vidPaths[i];
-    console.log('Extracting for file', vidPath);
-    const v = new Video(vidPath, path.join(__dirname, '.tmp/'), {
-      ffmpeg: ffmpeg.path.replace('app.asar', 'app.asar.unpacked'),
-      ffprobe: ffprobe.path.replace('app.asar', 'app.asar.unpacked'),
-    });
-    const sub = v.getProgress().subscribe(status => {
-      event.sender.send('progress-update', status);
-    });
-    await v.extractDialog();
-    sub.unsubscribe();
-  }
-};
-
-ipcMain.on('extract-dialog', (event, vidPaths) => {
-  extractDialog(event, vidPaths)
-    .catch(reason => {
-      event.sender.send('error', `Error occurred while extracting dialog: ${JSON.stringify(reason)} ${reason as string}`);
-    });
-});
-
-const extractDialogNew = async (event: Electron.IpcMainEvent, vidConfigs: any[]) => {
+const extractDialog = async (event: Electron.IpcMainEvent, vidConfigs: any[]) => {
   console.log('VidConfigs!', vidConfigs);
 
   for (let i = 0; i < vidConfigs.length; i++) {
@@ -125,7 +102,7 @@ const extractDialogNew = async (event: Electron.IpcMainEvent, vidConfigs: any[])
 };
 
 ipcMain.on('extract-dialog-new', (event, vidConfigs) => {
-  extractDialogNew(event, vidConfigs)
+  extractDialog(event, vidConfigs)
     .catch(reason => {
       event.sender.send('error', `Error occurred while extracting dialog: ${reason as string}`);
     });
