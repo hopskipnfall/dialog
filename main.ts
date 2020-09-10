@@ -4,6 +4,7 @@ import { app, BrowserWindow, dialog, ipcMain, screen } from 'electron';
 import * as path from 'path';
 import * as url from 'url';
 import { Video } from './extraction/video';
+import { FfprobeData } from 'fluent-ffmpeg';
 
 let win: BrowserWindow = null;
 const args = process.argv.slice(1),
@@ -58,7 +59,7 @@ function createWindow(): BrowserWindow {
 const selectFiles = async (event: Electron.IpcMainEvent) => {
   const value = await dialog.showOpenDialog({
     properties: ['openFile', 'multiSelections'],
-    filters: [{ name: 'videosOnly', extensions: ['mkv'] }],
+    // filters: [{ name: 'videosOnly', extensions: ['mkv'] }],
   });
   if (value.canceled) {
     // User hit "cancel" on the file selector.
@@ -80,26 +81,30 @@ ipcMain.on('select-files', (event) => {
     });
 });
 
-const extractDialog = async (event: Electron.IpcMainEvent, vidPaths: string[]) => {
-  for (let i = 0; i < vidPaths.length; i++) {
-    const vidPath = vidPaths[i];
-    console.log('Extracting for file', vidPath);
-    const v = new Video(vidPath, path.join(__dirname, '.tmp/'), {
+const extractDialog = async (event: Electron.IpcMainEvent, vidConfigs: any[]) => {
+  console.log('VidConfigs!', vidConfigs);
+
+  for (let i = 0; i < vidConfigs.length; i++) {
+    const vidConfig = vidConfigs[i];
+
+    const myUri = vidConfig.video.ffprobeData.format.filename; //(vidConfig.video.ffprobeData.format as FfprobeData).format.filename;
+    console.log('Extracting for file', myUri);
+    const v = new Video(myUri, path.join(__dirname, '.tmp/'), {
       ffmpeg: ffmpeg.path.replace('app.asar', 'app.asar.unpacked'),
       ffprobe: ffprobe.path.replace('app.asar', 'app.asar.unpacked'),
     });
     const sub = v.getProgress().subscribe(status => {
       event.sender.send('progress-update', status);
     });
-    await v.extractDialog();
+    await v.extractDialogNew(vidConfig);
     sub.unsubscribe();
   }
 };
 
-ipcMain.on('extract-dialog', (event, vidPaths) => {
-  extractDialog(event, vidPaths)
+ipcMain.on('extract-dialog-new', (event, vidConfigs) => {
+  extractDialog(event, vidConfigs)
     .catch(reason => {
-      event.sender.send('error', `Error occurred while extracting dialog: ${JSON.stringify(reason)}`);
+      event.sender.send('error', `Error occurred while extracting dialog: ${reason as string}`);
     });
 });
 

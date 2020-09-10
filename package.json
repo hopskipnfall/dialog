@@ -96,7 +96,11 @@
     "node": ">=10.13.0"
   },
   "dependencies": {
+    "@angular/animations": "^10.0.0 || ^11.0.0-0",
+    "@angular/cdk": "10.2.0",
+    "@angular/forms": "^10.0.0 || ^11.0.0-0",
     "@angular/localize": "10.0.14",
+    "@angular/material": "10.2.0",
     "@ffmpeg-installer/ffmpeg": "1.0.20",
     "@ffprobe-installer/ffprobe": "1.1.0",
     "@ng-bootstrap/ng-bootstrap": "7.0.0",

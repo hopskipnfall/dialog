@@ -1,8 +1,8 @@
 {
   "PAGES": {
       "HOME": {
-          "TITLE": "App works !",
-          "GO_TO_DETAIL": "Go to Detail"
+          "TITLE": "Dialog",
+          "EXTRACT_DIALOG": "Extract Dialog"
       },
       "DETAIL": {
         "TITLE": "Detail page !",

@@ -3,7 +3,6 @@
     {{ "PAGES.HOME.TITLE" | translate }}
   </h1>
 
-  <!-- <a routerLink="/detail">{{ "PAGES.HOME.GO_TO_DETAIL" | translate }}</a> -->
   <button class="btn btn-primary" type="button" (click)="doThing()">
     Add Videos
   </button>
@@ -23,7 +22,7 @@
             [striped]="!video.status.phase.endsWith('DONE')"
             [animated]="false"
           >
-          {{ video.status.phase }}
+            {{ video.status.phase }}
           </ngb-progressbar>
         </span>
       </ng-template>
@@ -34,7 +33,6 @@
     </ngb-panel>
   </ngb-accordion>
 
-  <button class="btn btn-primary" type="button" (click)="start()">
-    Extract Dialog
-  </button>
+  <br />
+  <a routerLink="/wizard">Extract Dialog</a>
 </div>
