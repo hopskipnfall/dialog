@@ -21,10 +21,12 @@ export class VideoService implements OnDestroy {
 
   private extractionQueue: VideoExtractionConfig[] = [];
 
+  statusMap: BehaviorSubject<{ [key: string]: ExtractionStatus }> = new BehaviorSubject({});
+
   constructor(
     private electron: ElectronService,
     private router: Router,
-    ) {
+  ) {
 
     // New videos are added.
     this.electron.ipcRenderer.on('new-files', (event, filename: string, ffprobeData: ffmpeg.FfprobeData) => {
@@ -34,19 +36,14 @@ export class VideoService implements OnDestroy {
     });
 
     this.electron.ipcRenderer.on('progress-update', (event, status: ExtractionStatus) => {
-      const i = this.videos.findIndex(v => v.ffprobeData.format.filename == status.uri);
-      if (i == -1) {
-        console.error('Video for status not found!', status);
-        return;
-      }
-      this.videos[i] = {...this.videos[i]}
-      this.videos[i].status = status;
-      this.notifyVideos();
+      const copy = { ...this.statusMap.getValue() };
+      copy[status.uri] = status;
+      this.statusMap.next(copy);
     });
   }
 
-  private notifyVideos() {
-    this.videosSubject.next([...this.videos]);
+  getProgressUpdates(): Observable<{ [key: string]: any }> {
+    return this.statusMap;
   }
 
   queueExtraction(videoConfigs: VideoExtractionConfig[]): void {

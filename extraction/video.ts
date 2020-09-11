@@ -1,12 +1,11 @@
 
 import * as ffmpeg from 'fluent-ffmpeg';
-import * as path from 'path';
 import * as fs from 'fs';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { FfpathsConfig } from './ffpaths';
 import * as moment from 'moment';
 import * as os from 'os';
-import { cursorTo } from 'readline';
+import * as path from 'path';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { FfpathsConfig } from './ffpaths';
 
 type Statuses =
   | 'NOT_STARTED'
@@ -139,7 +138,7 @@ export class Video {
     for (const chapter of chapterIntervals) {
       const revision = [];
       for (const ivl of out) {
-        const cur: Interval = {start: ivl.start, end: ivl.end};
+        const cur: Interval = { start: ivl.start, end: ivl.end };
         if (cur.start > chapter.start && cur.start < chapter.end) {
           cur.start = chapter.end;
         }
