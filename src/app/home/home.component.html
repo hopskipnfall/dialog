@@ -18,11 +18,11 @@
           {{ video.filename }}
           <ngb-progressbar
             [type]="getType(video)"
-            [value]="video.status.percentage"
-            [striped]="!video.status.phase.endsWith('DONE')"
-            [animated]="false"
+            [value]="getPercentage(video)"
+            [striped]="stripedProgressBar(video)"
+            [animated]="true"
           >
-            {{ video.status.phase }}
+            {{ getStatus(video) ? getStatus(video).phase : "" }}
           </ngb-progressbar>
         </span>
       </ng-template>

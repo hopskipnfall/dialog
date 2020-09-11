@@ -8,13 +8,5 @@ export interface ExtractionStatus {
 }
 
 export class VideoModel {
-  status: ExtractionStatus;
-
-  constructor(public filename: string, public ffprobeData: ffmpeg.FfprobeData) {
-    this.status = {
-      uri: filename,
-      phase: 'NOT_STARTED',
-      percentage: 0,
-    };
-  }
+  constructor(public filename: string, public ffprobeData: ffmpeg.FfprobeData) {}
 }

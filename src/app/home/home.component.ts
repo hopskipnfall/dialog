@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ElectronService } from 'app/core/services';
-import { VideoModel } from 'app/shared/models/video-model';
+import { VideoModel, ExtractionStatus } from 'app/shared/models/video-model';
 import { Subscription } from 'rxjs';
 import { VideoService } from '../video.service';
 
@@ -11,9 +11,10 @@ import { VideoService } from '../video.service';
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit, OnDestroy {
-  // videos: Observable<VideoModel[]>;
   videos: VideoModel[] = [];
   subs: Subscription[] = [];
+
+  statuses: { [key: string]: ExtractionStatus } = {};
 
   constructor(
     private router: Router,
@@ -32,30 +33,47 @@ export class HomeComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.subs.push(
       this.videoService.getVideos().subscribe(videos => {
-        console.log('GETTING NEW VIDEOS NOW');
-        // This is really dumb. https://stackoverflow.com/a/51169586/2875073
-        // this.ngZone.run(() => {
-        //   console.log('why')
-        //   this.videos = videos;
-        // })
         this.videos = videos;
         this.ref.detectChanges();
+      }),
+
+      this.videoService.getProgressUpdates().subscribe(statuses => {
+        this.statuses = statuses;
+        this.ref.detectChanges();
       })
-    )
+    );
   }
 
-  doThing() {
-    console.error('hey it\'s doing the thing!');
-
-    this.videoService.addVideos()
+  doThing(): void {
+    this.videoService.addVideos();
   }
 
   stringify(a: unknown): string {
     return JSON.stringify(a);
   }
 
+  getPercentage(video: VideoModel): number {
+    const status = this.getStatus(video);
+    if (!status) return 0;
+    return status.percentage;
+  }
+
+  stripedProgressBar(video: VideoModel): boolean {
+    const status = this.getStatus(video);
+    if (!status) return false;
+
+    return !(status.phase.endsWith('DONE') || status.phase.endsWith('ERROR'));
+  }
+
+  getStatus(video: VideoModel): ExtractionStatus | undefined {
+    return this.statuses[video.ffprobeData.format.filename];
+  }
+
   getType(video: VideoModel): string {
-    const phase = video.status.phase;
+    const status = this.getStatus(video);
+    if (!status) return 'dark';
+
+    const phase = status.phase;
     if (phase === 'NOT_STARTED') {
       return 'dark'
     } else if (phase.startsWith('EXTRACTING_SUBTITLES')) {
