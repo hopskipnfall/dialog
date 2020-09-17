@@ -1,10 +1,14 @@
-import * as ffmpeg from '@ffmpeg-installer/ffmpeg';
-import * as ffprobe from '@ffprobe-installer/ffprobe';
+import * as ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
+import * as ffprobeInstaller from '@ffprobe-installer/ffprobe';
 import { app, BrowserWindow, dialog, ipcMain, screen } from 'electron';
+import * as ffmpeg from 'fluent-ffmpeg';
 import * as path from 'path';
 import * as url from 'url';
+import { readSubtitlesListener } from './extraction/ipc';
 import { Video } from './extraction/video';
-import { FfprobeData } from 'fluent-ffmpeg';
+
+ffmpeg.setFfmpegPath(ffmpegInstaller.path.replace('app.asar', 'app.asar.unpacked'));
+ffmpeg.setFfprobePath(ffprobeInstaller.path.replace('app.asar', 'app.asar.unpacked'));
 
 let win: BrowserWindow = null;
 const args = process.argv.slice(1),
@@ -67,7 +71,7 @@ const selectFiles = async (event: Electron.IpcMainEvent) => {
   }
 
   for (const file of value.filePaths) {
-    const val = await new Video(file, path.join(__dirname, '.tmp/'), { ffmpeg: ffmpeg.path.replace('app.asar', 'app.asar.unpacked'), ffprobe: ffprobe.path.replace('app.asar', 'app.asar.unpacked') })
+    const val = await new Video(file)
       .getInfo();
     const humanName = path.basename(val.format.filename);
     event.sender.send('new-files', humanName, val);
@@ -89,10 +93,7 @@ const extractDialog = async (event: Electron.IpcMainEvent, vidConfigs: any[]) =>
 
     const myUri = vidConfig.video.ffprobeData.format.filename; //(vidConfig.video.ffprobeData.format as FfprobeData).format.filename;
     console.log('Extracting for file', myUri);
-    const v = new Video(myUri, path.join(__dirname, '.tmp/'), {
-      ffmpeg: ffmpeg.path.replace('app.asar', 'app.asar.unpacked'),
-      ffprobe: ffprobe.path.replace('app.asar', 'app.asar.unpacked'),
-    });
+    const v = new Video(myUri);
     const sub = v.getProgress().subscribe(status => {
       event.sender.send('progress-update', status);
     });
@@ -107,6 +108,24 @@ ipcMain.on('extract-dialog-new', (event, vidConfigs) => {
       event.sender.send('error', `Error occurred while extracting dialog: ${reason as string}`);
     });
 });
+
+readSubtitlesListener(async (event, request) => {
+  console.log('Reading subtitles request', request)
+  const v = new Video(request.path);
+  const sub = v.getProgress().subscribe(status => {
+    event.sender.send('progress-update', status);
+  });
+
+  const subtitles = await v.readSubtitles(request.stream);
+
+  sub.unsubscribe();
+
+  return {
+    type: 'read-subtitles-response',
+    path: request.path,
+    subtitles
+  };
+})
 
 try {
   // This method will be called when Electron has finished

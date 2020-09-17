@@ -32,9 +32,7 @@ export class Video {
 
   extractionProgress: BehaviorSubject<ExtractionStatus> = new BehaviorSubject({ uri: this.videoPath, phase: 'NOT_STARTED', percentage: 0 });
 
-  constructor(private videoPath: string, private scratchPath: string, private ffpaths: FfpathsConfig) {
-    ffmpeg.setFfmpegPath(this.ffpaths.ffmpeg);
-    ffmpeg.setFfprobePath(this.ffpaths.ffprobe);
+  constructor(private videoPath: string) {
   }
 
   getProgress(): Observable<ExtractionStatus> {
@@ -52,9 +50,9 @@ export class Video {
 
   async extractDialog(): Promise<void> {
     try {
-      this.scratchPath = fs.mkdtempSync(path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`));
-      console.log('Scratch path', this.scratchPath);
-      fs.mkdirSync(this.scratchPath, { recursive: true });
+      const scratchPath = fs.mkdtempSync(path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`));
+      console.log('Scratch path', scratchPath);
+      fs.mkdirSync(scratchPath, { recursive: true });
       // TODO: Is there a better way to find the "desktop" folder?
       const outputFolder = path.join(os.homedir(), 'Desktop', 'Dialog');
       if (!fs.existsSync(outputFolder)) {
@@ -64,12 +62,13 @@ export class Video {
       // Figure out how to catch this and prevent moving forward.
       this.stream = fs.createWriteStream(
         `${path.join(outputFolder, path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`);
-      await this.extractSubtitles();
-      const intervals = await this.getSubtitleIntervals();
+      const subtitlesPath = path.join(scratchPath, 'subs.srt');
+      await this.extractSubtitles(subtitlesPath);
+      const intervals = await this.getSubtitleIntervals(subtitlesPath);
       const combined = this.combineIntervals(intervals);
       await this.extractAudio(combined);
       // Note: This doesn't throw an error when it fails (for example, with recursive: false)...
-      fs.rmdirSync(this.scratchPath, { recursive: true });
+      fs.rmdirSync(scratchPath, { recursive: true });
 
       this.extractionProgress.next({
         uri: this.videoPath, phase: 'DONE',
@@ -88,9 +87,9 @@ export class Video {
 
   async extractDialogNew(config: any): Promise<void> {
     try {
-      this.scratchPath = fs.mkdtempSync(path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`));
-      console.log('Scratch path', this.scratchPath);
-      fs.mkdirSync(this.scratchPath, { recursive: true });
+      const scratchPath = fs.mkdtempSync(path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`));
+      console.log('Scratch path', scratchPath);
+      fs.mkdirSync(scratchPath, { recursive: true });
       // TODO: Is there a better way to find the "desktop" folder?
       const outputFolder = path.join(os.homedir(), 'Desktop', 'Dialog');
       if (!fs.existsSync(outputFolder)) {
@@ -100,13 +99,14 @@ export class Video {
       // Figure out how to catch this and prevent moving forward.
       this.stream = fs.createWriteStream(
         `${path.join(outputFolder, path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`);
-      await this.extractSubtitles(config.subtitleStream);
-      const intervals = await this.getSubtitleIntervals();
+      const subtitlesPath = path.join(scratchPath, 'subs.srt');
+      await this.extractSubtitles(subtitlesPath, config.subtitleStream);
+      const intervals = await this.getSubtitleIntervals(subtitlesPath);
       let combined = this.combineIntervals(intervals);
       combined = await this.subtractChapters(combined, config.ignoredChapters);
       await this.extractAudio(combined, config.audioStream);
       // Note: This doesn't throw an error when it fails (for example, with recursive: false)...
-      fs.rmdirSync(this.scratchPath, { recursive: true });
+      fs.rmdirSync(scratchPath, { recursive: true });
 
       this.extractionProgress.next({
         uri: this.videoPath, phase: 'DONE',
@@ -195,15 +195,50 @@ export class Video {
     }
   }
 
-  private async extractSubtitles(stream?: ffmpeg.FfprobeStream) {
+  private async extractSubtitles(outputPath: string, stream?: ffmpeg.FfprobeStream) {
     const track = stream ? stream.index : 2; // TODO: get rid of 2
     const command = ffmpeg(this.videoPath)
       .outputOption(`-map 0:${track}`)
-      .saveToFile(path.join(this.scratchPath, 'subs.srt'))
+      .saveToFile(outputPath)
       .on('progress', progress => {
         this.extractionProgress.next({ uri: this.videoPath, phase: 'EXTRACTING_SUBTITLES', percentage: progress.percent });
       });
     return this.toPromise(command, command => command.run());
+  }
+
+  async readSubtitles(stream: ffmpeg.FfprobeStream): Promise<string> {
+    const scratchPath = fs.mkdtempSync(path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`));
+    console.log('Scratch path', scratchPath);
+    fs.mkdirSync(scratchPath, { recursive: true });
+
+    const tempFile = path.join(scratchPath, 'subs.srt');
+    const track = stream.index;
+    const command = ffmpeg(this.videoPath)
+      .outputOption(`-map 0:${track}`)
+      .saveToFile(tempFile)
+      .on('progress', progress => {
+        this.extractionProgress.next({ uri: this.videoPath, phase: 'EXTRACTING_SUBTITLES', percentage: progress.percent });
+      });
+    await this.toPromise(command, command => command.run());
+
+    const out = await this.readTextFile(tempFile);
+
+    // Note: This doesn't throw an error when it fails (for example, with recursive: false)...
+    fs.rmdirSync(scratchPath, { recursive: true });
+
+    return out;
+  }
+
+  private readTextFile(filePath: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      fs.readFile(filePath, 'utf8', (err, data) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(data);
+        }
+      });
+    });
   }
 
   private isGapOverThreshold(start: string, end: string) {
@@ -239,9 +274,9 @@ export class Video {
     return combined;
   }
 
-  private getSubtitleIntervals(): Promise<Interval[]> {
+  private getSubtitleIntervals(subtitlePath: string): Promise<Interval[]> {
     return new Promise((resolve, reject) => {
-      fs.readFile(path.join(this.scratchPath, 'subs.srt'), 'utf8', (err, data) => {
+      fs.readFile(subtitlePath, 'utf8', (err, data) => {
         if (err) {
           reject(err);
         }

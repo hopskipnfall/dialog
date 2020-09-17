@@ -1,9 +1,10 @@
-import { Injectable, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import * as ffmpeg from 'fluent-ffmpeg';
-import { ElectronService } from './core/services';
-import { VideoModel, ExtractionStatus } from './shared/models/video-model';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Injectable, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
+import * as ffmpeg from 'fluent-ffmpeg';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { ElectronService } from './core/services';
+import { ExtractionStatus, VideoModel } from './shared/models/video-model';
+import {ReadSubtitlesResponse, ReadSubtitlesRequest} from './shared/ipc/messages';
 
 export interface VideoExtractionConfig {
   video: VideoModel
@@ -40,6 +41,10 @@ export class VideoService implements OnDestroy {
       copy[status.uri] = status;
       this.statusMap.next(copy);
     });
+
+    this.electron.ipcRenderer.on('read-subtitles-response', (event, response: ReadSubtitlesResponse) => {
+      console.log('ReadSubtitlesResponse', response);
+    });
   }
 
   getProgressUpdates(): Observable<{ [key: string]: any }> {
@@ -47,11 +52,18 @@ export class VideoService implements OnDestroy {
   }
 
   queueExtraction(videoConfigs: VideoExtractionConfig[]): void {
-    this.electron.ipcRenderer.send('extract-dialog-new', videoConfigs);
+    // was this.electron.ipcRenderer.send('extract-dialog-new', videoConfigs);
+    // TODO: Make this do more than just extract subtitles.
+    const request: ReadSubtitlesRequest = {
+      type: 'read-subtitles',
+      path: videoConfigs[0].video.ffprobeData.format.filename,
+      stream: videoConfigs[0].subtitleStream,
+    };
+    this.electron.ipcRenderer.send('read-subtitles', request);
     this.router.navigateByUrl('/');
   }
 
-  addVideos() {
+  addVideos(): void {
     this.electron.ipcRenderer.send('select-files');
   }
 
@@ -66,5 +78,6 @@ export class VideoService implements OnDestroy {
   ngOnDestroy(): void {
     this.electron.ipcRenderer.removeAllListeners('new-files');
     this.electron.ipcRenderer.removeAllListeners('progress-update');
+    this.electron.ipcRenderer.removeAllListeners('read-subtitles-response');
   }
 }

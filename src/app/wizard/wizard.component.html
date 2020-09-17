@@ -57,7 +57,7 @@
               ngbButton
               type="radio"
               [value]="track"
-              [disabled]="getAudioTracks(formVideo.video).length < 2"
+              [disabled]="getSubtitleTracks(formVideo.video).length < 2"
             />
             {{ getName(track) }}
           </label>
