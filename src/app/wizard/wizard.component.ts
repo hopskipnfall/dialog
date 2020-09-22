@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ElectronService } from 'app/core/services';
-import { VideoModel } from 'app/shared/models/video-model';
-import { VideoService } from 'app/video.service';
+import { ElectronService } from '../core/services';
+import { VideoModel } from '../shared/models/video-model';
+import { VideoService } from '../video.service';
 import * as ffmpeg from 'fluent-ffmpeg';
 import * as moment from 'moment';
 
@@ -39,10 +39,7 @@ export class WizardComponent implements OnInit {
   editable = true;
 
   constructor(
-    private _formBuilder: FormBuilder,
     private videoService: VideoService,
-    // private ref: ChangeDetectorRef,
-    private electron: ElectronService,
     private router: Router,
   ) { }
 

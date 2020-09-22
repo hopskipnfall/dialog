@@ -1,3 +1,6 @@
+branches:
+  only:
+  - master
 os:
   - linux
   - osx
@@ -14,6 +17,6 @@ install:
   - npm install
 script:
   - ng lint
+  - npm run build
   - if [ "$TRAVIS_OS_NAME" != "windows" ]; then npm run test ; fi
   - if [ "$TRAVIS_OS_NAME" != "windows" ]; then npm run e2e ; fi
-  - npm run build

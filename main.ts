@@ -18,6 +18,7 @@ function createWindow(): BrowserWindow {
 
   const electronScreen = screen;
   const size = electronScreen.getPrimaryDisplay().workAreaSize;
+  console.log('Screen size', size);
 
   // Create the browser window.
   win = new BrowserWindow({
@@ -28,7 +29,7 @@ function createWindow(): BrowserWindow {
     webPreferences: {
       nodeIntegration: true,
       allowRunningInsecureContent: (serve) ? true : false,
-      enableRemoteModule: false, // true if you want to use remote module in renderer context (e.g. Angular)
+      enableRemoteModule: true, // true if you want to use remote module in renderer context (e.g. Angular)
     },
   });
   if (serve) {
@@ -46,7 +47,7 @@ function createWindow(): BrowserWindow {
       slashes: true
     }));
 
-    win.webContents.openDevTools(); // DO NOT SUBMIT.
+    // win.webContents.openDevTools(); // TODO: Un-submit.
   }
 
   // Emitted when the window is closed.

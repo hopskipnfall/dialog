@@ -3,8 +3,8 @@ import { Router } from '@angular/router';
 import * as ffmpeg from 'fluent-ffmpeg';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { ElectronService } from './core/services';
+import { ReadSubtitlesRequest, ReadSubtitlesResponse } from './shared/ipc/messages';
 import { ExtractionStatus, VideoModel } from './shared/models/video-model';
-import {ReadSubtitlesResponse, ReadSubtitlesRequest} from './shared/ipc/messages';
 
 export interface VideoExtractionConfig {
   video: VideoModel
@@ -44,6 +44,10 @@ export class VideoService implements OnDestroy {
 
     this.electron.ipcRenderer.on('read-subtitles-response', (event, response: ReadSubtitlesResponse) => {
       console.log('ReadSubtitlesResponse', response);
+      const copy = { ...this.statusMap.getValue() };
+      copy[response.path].percentage = 0;
+      copy[response.path].phase = 'PENDING';
+      this.statusMap.next(copy);
     });
   }
 
