@@ -42,7 +42,7 @@ function createWindow(): BrowserWindow {
       slashes: true
     }));
 
-    win.webContents.openDevTools(); // TODO: Un-submit.
+    // win.webContents.openDevTools(); // TODO: Un-submit.
   }
 
   // Emitted when the window is closed.
