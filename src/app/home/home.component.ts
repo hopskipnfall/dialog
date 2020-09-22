@@ -1,8 +1,8 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { ElectronService } from 'app/core/services';
-import { VideoModel, ExtractionStatus } from 'app/shared/models/video-model';
 import { Subscription } from 'rxjs';
+import { ElectronService } from '../core/services';
+import { ExtractionStatus, VideoModel } from '../shared/models/video-model';
 import { VideoService } from '../video.service';
 
 @Component({
