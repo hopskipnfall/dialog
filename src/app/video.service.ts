@@ -1,15 +1,15 @@
-import { Injectable, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import * as ffmpeg from 'fluent-ffmpeg';
-import { ElectronService } from './core/services';
-import { VideoModel, ExtractionStatus } from './shared/models/video-model';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Injectable, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
+import * as ffmpeg from 'fluent-ffmpeg';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { ElectronService } from './core/services';
+import { ExtractionStatus, VideoModel } from './shared/models/video-model';
 
 export interface VideoExtractionConfig {
-  video: VideoModel
-  subtitleStream?: ffmpeg.FfprobeStream
-  audioStream: ffmpeg.FfprobeStream
-  ignoredChapters: string[]
+  video: VideoModel;
+  subtitleStream?: ffmpeg.FfprobeStream;
+  audioStream: ffmpeg.FfprobeStream;
+  ignoredChapters: string[];
 }
 
 @Injectable({
@@ -17,21 +17,18 @@ export interface VideoExtractionConfig {
 })
 export class VideoService implements OnDestroy {
   private videos: VideoModel[] = [];
+
   private videosSubject: BehaviorSubject<VideoModel[]> = new BehaviorSubject(this.videos);
 
   private extractionQueue: VideoExtractionConfig[] = [];
 
   statusMap: BehaviorSubject<{ [key: string]: ExtractionStatus }> = new BehaviorSubject({});
 
-  constructor(
-    private electron: ElectronService,
-    private router: Router,
-  ) {
-
+  constructor(private electron: ElectronService, private router: Router) {
     // New videos are added.
     this.electron.ipcRenderer.on('new-files', (event, filename: string, ffprobeData: ffmpeg.FfprobeData) => {
       // todo: dedupe
-      this.videos.push(new VideoModel(filename, ffprobeData))
+      this.videos.push(new VideoModel(filename, ffprobeData));
       this.videosSubject.next(this.videos);
     });
 

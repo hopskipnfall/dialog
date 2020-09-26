@@ -1,18 +1,13 @@
 <div class="container">
   <h1 class="title">
-    {{ "PAGES.HOME.TITLE" | translate }}
+    {{ 'PAGES.HOME.TITLE' | translate }}
   </h1>
 
-  <button class="btn btn-primary" type="button" (click)="doThing()">
-    Add Videos
-  </button>
+  <button class="btn btn-primary" type="button" (click)="doThing()">Add Videos</button>
   <br />
 
   <ngb-accordion [closeOthers]="true" activeIds="static-1" style="width: 100%">
-    <ngb-panel
-      id="{{ video.ffprobeData.format.filename }}"
-      *ngFor="let video of videos"
-    >
+    <ngb-panel id="{{ video.ffprobeData.format.filename }}" *ngFor="let video of videos">
       <ng-template ngbPanelTitle>
         <span>
           {{ video.filename }}
@@ -22,7 +17,7 @@
             [striped]="stripedProgressBar(video)"
             [animated]="true"
           >
-            {{ getStatus(video) ? getStatus(video).phase : "" }}
+            {{ getStatus(video) ? getStatus(video).phase : '' }}
           </ngb-progressbar>
         </span>
       </ng-template>

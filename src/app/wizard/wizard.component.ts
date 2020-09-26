@@ -1,47 +1,47 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ElectronService } from '../core/services';
-import { VideoModel } from '../shared/models/video-model';
-import { VideoService } from '../video.service';
 import * as ffmpeg from 'fluent-ffmpeg';
 import * as moment from 'moment';
+import { VideoModel } from '../shared/models/video-model';
+import { VideoService } from '../video.service';
 
 type VideoFormSelection = {
-  video: VideoModel
-  subtitleStream?: ffmpeg.FfprobeStream
-  audioStream: ffmpeg.FfprobeStream
-  ignoreIntervals: { start: number, end: number }[]
+  video: VideoModel;
+  subtitleStream?: ffmpeg.FfprobeStream;
+  audioStream: ffmpeg.FfprobeStream;
+  ignoreIntervals: { start: number; end: number }[];
 };
 
 type ChapterSummary = {
-  title: string
-  medianStart: string
-  medianEnd: string
-  count: number
+  title: string;
+  medianStart: string;
+  medianEnd: string;
+  count: number;
 };
 
 @Component({
   selector: 'app-wizard',
   templateUrl: './wizard.component.html',
-  styleUrls: ['./wizard.component.scss']
+  styleUrls: ['./wizard.component.scss'],
 })
 export class WizardComponent implements OnInit {
   formVideos: VideoFormSelection[] = [];
+
   chapterSummaries: ChapterSummary[] = [];
+
   ignoredChapterTitles: string[] = [];
 
   isLinear = false;
+
   firstFormGroup: FormGroup;
+
   secondFormGroup: FormGroup;
 
   // Whether user can go back and make changes in the stepper.
   editable = true;
 
-  constructor(
-    private videoService: VideoService,
-    private router: Router,
-  ) { }
+  constructor(private videoService: VideoService, private router: Router) {}
 
   ngOnInit(): void {
     const videos = this.videoService.getCurrentVideos();
@@ -52,18 +52,20 @@ export class WizardComponent implements OnInit {
       return;
     }
 
-    this.formVideos = videos.map(video => this.initialOptions(video));
+    this.formVideos = videos.map((video) => this.initialOptions(video));
 
     const titles: string[] = [];
     const startTimes = {};
     const endTimes = {};
-    const counts = {}
-    for (const video of this.formVideos) {
+    const counts = {};
+    for (let i = 0; i < this.formVideos.length; i++) {
+      const video = this.formVideos[i];
       console.log(video.video.ffprobeData);
-      for (const chapter of video.video.ffprobeData.chapters) {
-        const title = chapter['TAG:title']
+      for (let j = 0; j < video.video.ffprobeData.chapters.length; j++) {
+        const chapter = video.video.ffprobeData.chapters[j];
+        const title = chapter['TAG:title'];
         if (title) {
-          if (titles.indexOf(title) == -1) titles.push(title);
+          if (!titles.includes(title)) titles.push(title);
 
           if (!counts[title]) counts[title] = 0;
           if (!startTimes[title]) startTimes[title] = [];
@@ -75,37 +77,44 @@ export class WizardComponent implements OnInit {
       }
     }
 
-    this.chapterSummaries = titles.map(title => {
-      const start = moment.duration(this.median(startTimes[title]), 'seconds');
-      const end = moment.duration(this.median(endTimes[title]), 'seconds');
-      return {
-        title,
-        medianStart: this.humanize(start),
-        medianEnd: this.humanize(end),
-        count: counts[title],
-      };
-    }).sort((a, b) => (a.medianStart > b.medianStart) ? 1 : ((b.medianStart > a.medianStart) ? -1 : 0));
+    this.chapterSummaries = titles
+      .map((title) => {
+        const start = moment.duration(this.median(startTimes[title]), 'seconds');
+        const end = moment.duration(this.median(endTimes[title]), 'seconds');
+        return {
+          title,
+          medianStart: this.humanize(start),
+          medianEnd: this.humanize(end),
+          count: counts[title],
+        };
+      })
+      // eslint-disable-next-line unicorn/no-nested-ternary
+      .sort((a, b) => (a.medianStart > b.medianStart ? 1 : b.medianStart > a.medianStart ? -1 : 0));
   }
 
   extract(): void {
     this.editable = false;
 
     this.videoService.queueExtraction(
-      this.formVideos.map(formVideo => ({
+      this.formVideos.map((formVideo) => ({
         video: formVideo.video,
         audioStream: formVideo.audioStream,
         subtitleStream: formVideo.subtitleStream,
         ignoredChapters: this.ignoredChapterTitles,
-      })));
+      })),
+    );
   }
 
   private humanize(duration: moment.Duration) {
-    return `${duration.hours()}:${`${duration.minutes()}`.padStart(2, '0')}:${`${duration.seconds()}`.padStart(2, '0')}`
+    return `${duration.hours()}:${`${duration.minutes()}`.padStart(2, '0')}:${`${duration.seconds()}`.padStart(
+      2,
+      '0',
+    )}`;
   }
 
   private median(values: number[]): number {
     if (values.length === 0) {
-      throw Error('No entries to sort!');
+      throw new Error('No entries to sort!');
     }
 
     const sorted = [...values].sort(function (a, b) {
@@ -116,7 +125,7 @@ export class WizardComponent implements OnInit {
     if (sorted.length % 2) {
       return sorted[half];
     }
-    return (sorted[half - 1] + sorted[half]) / 2.0;
+    return (sorted[half - 1] + sorted[half]) / 2;
   }
 
   private initialOptions(video: VideoModel): VideoFormSelection {
@@ -130,7 +139,7 @@ export class WizardComponent implements OnInit {
   }
 
   isIgnoredChapter(chapter: ChapterSummary): boolean {
-    return this.ignoredChapterTitles.indexOf(chapter.title) != -1;
+    return this.ignoredChapterTitles.includes(chapter.title);
   }
 
   chapterClicked(chapter: ChapterSummary): void {
@@ -142,24 +151,16 @@ export class WizardComponent implements OnInit {
   }
 
   getAudioTracks(video: VideoModel): ffmpeg.FfprobeStream[] {
-    return video.ffprobeData.streams
-      .filter(stream => stream.codec_type == 'audio');
+    return video.ffprobeData.streams.filter((stream) => stream.codec_type === 'audio');
   }
 
   getSubtitleTracks(video: VideoModel): ffmpeg.FfprobeStream[] {
-    return video.ffprobeData.streams
-      .filter(stream => stream.codec_type == 'subtitle');
+    return video.ffprobeData.streams.filter((stream) => stream.codec_type === 'subtitle');
   }
 
   getName(stream: ffmpeg.FfprobeStream): string {
-    const name: string =
-      stream.tags && stream.tags.language
-        ? stream.tags.title
-        : 'No title';
-    const language: string =
-      stream.tags && stream.tags.language
-        ? stream.tags.language
-        : 'No title';
+    const name: string = stream.tags && stream.tags.language ? stream.tags.title : 'No title';
+    const language: string = stream.tags && stream.tags.language ? stream.tags.language : 'No title';
     return `${name || 'No title'} (${language || 'No language'})`;
   }
 }

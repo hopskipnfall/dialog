@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-
 import { ElectronService } from './electron.service';
 
 describe('ElectronService', () => {
