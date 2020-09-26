@@ -7,10 +7,9 @@ import { Video } from './extraction/video';
 
 let win: BrowserWindow = null;
 const args = process.argv.slice(1),
-  serve = args.some(val => val === '--serve');
+  serve = args.some((val) => val === '--serve');
 
 function createWindow(): BrowserWindow {
-
   const electronScreen = screen;
   const size = electronScreen.getPrimaryDisplay().workAreaSize;
   console.log('Screen size', size);
@@ -23,24 +22,24 @@ function createWindow(): BrowserWindow {
     height: 660,
     webPreferences: {
       nodeIntegration: true,
-      allowRunningInsecureContent: (serve) ? true : false,
+      allowRunningInsecureContent: serve ? true : false,
       enableRemoteModule: true, // true if you want to use remote module in renderer context (e.g. Angular)
     },
   });
   if (serve) {
-
     win.webContents.openDevTools();
     require('electron-reload')(__dirname, {
-      electron: require(`${__dirname}/node_modules/electron`)
+      electron: require(`${__dirname}/node_modules/electron`),
     });
     win.loadURL('http://localhost:4200');
-
   } else {
-    win.loadURL(url.format({
-      pathname: path.join(__dirname, 'dist/index.html'),
-      protocol: 'file:',
-      slashes: true
-    }));
+    win.loadURL(
+      url.format({
+        pathname: path.join(__dirname, 'dist/index.html'),
+        protocol: 'file:',
+        slashes: true,
+      }),
+    );
 
     // win.webContents.openDevTools(); // TODO: Un-submit.
   }
@@ -67,18 +66,19 @@ const selectFiles = async (event: Electron.IpcMainEvent) => {
   }
 
   for (const file of value.filePaths) {
-    const val = await new Video(file, path.join(__dirname, '.tmp/'), { ffmpeg: ffmpeg.path.replace('app.asar', 'app.asar.unpacked'), ffprobe: ffprobe.path.replace('app.asar', 'app.asar.unpacked') })
-      .getInfo();
+    const val = await new Video(file, path.join(__dirname, '.tmp/'), {
+      ffmpeg: ffmpeg.path.replace('app.asar', 'app.asar.unpacked'),
+      ffprobe: ffprobe.path.replace('app.asar', 'app.asar.unpacked'),
+    }).getInfo();
     const humanName = path.basename(val.format.filename);
     event.sender.send('new-files', humanName, val);
   }
-}
+};
 
 ipcMain.on('select-files', (event) => {
-  selectFiles(event)
-    .catch(reason => {
-      event.sender.send('error', `Error occurred while selecting files: ${reason as string}`);
-    });
+  selectFiles(event).catch((reason) => {
+    event.sender.send('error', `Error occurred while selecting files: ${reason as string}`);
+  });
 });
 
 const extractDialog = async (event: Electron.IpcMainEvent, vidConfigs: any[]) => {
@@ -93,7 +93,7 @@ const extractDialog = async (event: Electron.IpcMainEvent, vidConfigs: any[]) =>
       ffmpeg: ffmpeg.path.replace('app.asar', 'app.asar.unpacked'),
       ffprobe: ffprobe.path.replace('app.asar', 'app.asar.unpacked'),
     });
-    const sub = v.getProgress().subscribe(status => {
+    const sub = v.getProgress().subscribe((status) => {
       event.sender.send('progress-update', status);
     });
     await v.extractDialogNew(vidConfig);
@@ -102,10 +102,9 @@ const extractDialog = async (event: Electron.IpcMainEvent, vidConfigs: any[]) =>
 };
 
 ipcMain.on('extract-dialog-new', (event, vidConfigs) => {
-  extractDialog(event, vidConfigs)
-    .catch(reason => {
-      event.sender.send('error', `Error occurred while extracting dialog: ${reason as string}`);
-    });
+  extractDialog(event, vidConfigs).catch((reason) => {
+    event.sender.send('error', `Error occurred while extracting dialog: ${reason as string}`);
+  });
 });
 
 try {
@@ -131,7 +130,6 @@ try {
       createWindow();
     }
   });
-
 } catch (e) {
   // Catch Error
   // throw e;

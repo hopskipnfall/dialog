@@ -1,4 +1,3 @@
-
 import * as ffmpeg from 'fluent-ffmpeg';
 import * as fs from 'fs';
 import * as moment from 'moment';
@@ -30,7 +29,11 @@ export interface Interval {
 export class Video {
   stream: fs.WriteStream;
 
-  extractionProgress: BehaviorSubject<ExtractionStatus> = new BehaviorSubject({ uri: this.videoPath, phase: 'NOT_STARTED', percentage: 0 });
+  extractionProgress: BehaviorSubject<ExtractionStatus> = new BehaviorSubject({
+    uri: this.videoPath,
+    phase: 'NOT_STARTED',
+    percentage: 0,
+  });
 
   constructor(private videoPath: string, private scratchPath: string, private ffpaths: FfpathsConfig) {
     ffmpeg.setFfmpegPath(this.ffpaths.ffmpeg);
@@ -52,7 +55,9 @@ export class Video {
 
   async extractDialog(): Promise<void> {
     try {
-      this.scratchPath = fs.mkdtempSync(path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`));
+      this.scratchPath = fs.mkdtempSync(
+        path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`),
+      );
       console.log('Scratch path', this.scratchPath);
       fs.mkdirSync(this.scratchPath, { recursive: true });
       // TODO: Is there a better way to find the "desktop" folder?
@@ -63,7 +68,8 @@ export class Video {
       // TODO: This somehow throws a user-visible error but does not stop execution.
       // Figure out how to catch this and prevent moving forward.
       this.stream = fs.createWriteStream(
-        `${path.join(outputFolder, path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`);
+        `${path.join(outputFolder, path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`,
+      );
       await this.extractSubtitles();
       const intervals = await this.getSubtitleIntervals();
       const combined = this.combineIntervals(intervals);
@@ -72,13 +78,15 @@ export class Video {
       fs.rmdirSync(this.scratchPath, { recursive: true });
 
       this.extractionProgress.next({
-        uri: this.videoPath, phase: 'DONE',
+        uri: this.videoPath,
+        phase: 'DONE',
         percentage: 100,
       });
       console.log('Extraction complete.');
     } catch (e) {
       this.extractionProgress.next({
-        uri: this.videoPath, phase: 'ERROR',
+        uri: this.videoPath,
+        phase: 'ERROR',
         percentage: 100,
         debug: e,
       });
@@ -88,7 +96,9 @@ export class Video {
 
   async extractDialogNew(config: any): Promise<void> {
     try {
-      this.scratchPath = fs.mkdtempSync(path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`));
+      this.scratchPath = fs.mkdtempSync(
+        path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`),
+      );
       console.log('Scratch path', this.scratchPath);
       fs.mkdirSync(this.scratchPath, { recursive: true });
       // TODO: Is there a better way to find the "desktop" folder?
@@ -99,7 +109,8 @@ export class Video {
       // TODO: This somehow throws a user-visible error but does not stop execution.
       // Figure out how to catch this and prevent moving forward.
       this.stream = fs.createWriteStream(
-        `${path.join(outputFolder, path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`);
+        `${path.join(outputFolder, path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`,
+      );
       await this.extractSubtitles(config.subtitleStream);
       const intervals = await this.getSubtitleIntervals();
       let combined = this.combineIntervals(intervals);
@@ -109,13 +120,15 @@ export class Video {
       fs.rmdirSync(this.scratchPath, { recursive: true });
 
       this.extractionProgress.next({
-        uri: this.videoPath, phase: 'DONE',
+        uri: this.videoPath,
+        phase: 'DONE',
         percentage: 100,
       });
       console.log('Extraction complete.');
     } catch (e) {
       this.extractionProgress.next({
-        uri: this.videoPath, phase: 'ERROR',
+        uri: this.videoPath,
+        phase: 'ERROR',
         percentage: 100,
       });
       throw e;
@@ -126,12 +139,16 @@ export class Video {
     const info = await this.getInfo();
 
     const chapterIntervals: Interval[] = [];
-    chapters.forEach(chap =>
-      info.chapters.filter(c => c['TAG:title'] === chap)
-        .forEach(c => chapterIntervals.push({
-          start: this.formalize(moment.duration(c.start_time, 'seconds')),
-          end: this.formalize(moment.duration(c.end_time, 'seconds')),
-        })));
+    chapters.forEach((chap) =>
+      info.chapters
+        .filter((c) => c['TAG:title'] === chap)
+        .forEach((c) =>
+          chapterIntervals.push({
+            start: this.formalize(moment.duration(c.start_time, 'seconds')),
+            end: this.formalize(moment.duration(c.end_time, 'seconds')),
+          }),
+        ),
+    );
 
     let out: Interval[] = [...combined];
 
@@ -156,10 +173,16 @@ export class Video {
   }
 
   private formalize(duration: moment.Duration): string {
-    return `${`${duration.hours()}`.padStart(2, '0')}:${`${duration.minutes()}`.padStart(2, '0')}:${`${duration.seconds()}`.padStart(2, '0')}.${`${duration.milliseconds()}`.padStart(3, '0')}`
+    return `${`${duration.hours()}`.padStart(2, '0')}:${`${duration.minutes()}`.padStart(
+      2,
+      '0',
+    )}:${`${duration.seconds()}`.padStart(2, '0')}.${`${duration.milliseconds()}`.padStart(3, '0')}`;
   }
 
-  private async toPromise(command: ffmpeg.FfmpegCommand, finish: (command: ffmpeg.FfmpegCommand) => void): Promise<any> {
+  private async toPromise(
+    command: ffmpeg.FfmpegCommand,
+    finish: (command: ffmpeg.FfmpegCommand) => void,
+  ): Promise<any> {
     return new Promise((resolve, reject) => {
       finish(
         command
@@ -169,7 +192,8 @@ export class Video {
           })
           .on('end', (stdout: string, stderr: string) => {
             resolve({ stdout: stdout, stderr: stderr });
-          }));
+          }),
+      );
     });
   }
 
@@ -181,17 +205,20 @@ export class Video {
       const interval = intervals[i];
       const command = ffmpeg(this.videoPath)
         .noVideo()
-        .outputOption(`-ss`, `${interval.start}`, `-to`, `${interval.end}`, '-map', `0:${track}`)//, "-q:a", "0", "-map", "a")
+        .outputOption(`-ss`, `${interval.start}`, `-to`, `${interval.end}`, '-map', `0:${track}`) //, "-q:a", "0", "-map", "a")
         .audioBitrate('128k')
         .audioCodec('libmp3lame')
         .format('mp3')
-        .on('progress', progress => {
+        .on('progress', (progress) => {
           this.extractionProgress.next({
-            uri: this.videoPath, phase: 'EXTRACTING_DIALOG',
-            percentage: ((1 / intervals.length) * (+progress.percent / 100) + i) * 100 / intervals.length,
+            uri: this.videoPath,
+            phase: 'EXTRACTING_DIALOG',
+            percentage: (((1 / intervals.length) * (+progress.percent / 100) + i) * 100) / intervals.length,
           });
         });
-      await this.toPromise(command, command => command.pipe(this.stream, i === max - 1 ? { end: true } : { end: false }));
+      await this.toPromise(command, (command) =>
+        command.pipe(this.stream, i === max - 1 ? { end: true } : { end: false }),
+      );
     }
   }
 
@@ -200,18 +227,22 @@ export class Video {
     const command = ffmpeg(this.videoPath)
       .outputOption(`-map 0:${track}`)
       .saveToFile(path.join(this.scratchPath, 'subs.srt'))
-      .on('progress', progress => {
-        this.extractionProgress.next({ uri: this.videoPath, phase: 'EXTRACTING_SUBTITLES', percentage: progress.percent });
+      .on('progress', (progress) => {
+        this.extractionProgress.next({
+          uri: this.videoPath,
+          phase: 'EXTRACTING_SUBTITLES',
+          percentage: progress.percent,
+        });
       });
-    return this.toPromise(command, command => command.run());
+    return this.toPromise(command, (command) => command.run());
   }
 
   private isGapOverThreshold(start: string, end: string) {
-    return moment.duration(end).subtract(moment.duration(start)).milliseconds() > 150;// todo threshold
+    return moment.duration(end).subtract(moment.duration(start)).milliseconds() > 150; // todo threshold
   }
 
   private combineIntervals(intervals: Interval[]): Interval[] {
-    intervals = intervals.sort((a, b) => (a.start > b.start) ? 1 : ((b.start > a.start) ? -1 : 0));
+    intervals = intervals.sort((a, b) => (a.start > b.start ? 1 : b.start > a.start ? -1 : 0));
 
     const combined: Interval[] = [];
     let pending = intervals[0];
@@ -222,13 +253,13 @@ export class Video {
         }
       } else {
         if (pending.start != pending.end) {
-          combined.push(pending)
+          combined.push(pending);
         }
-        pending = cur
+        pending = cur;
       }
     }
     if (pending.start != pending.end) {
-      combined.push(pending)
+      combined.push(pending);
     }
 
     // let fixed = '';
@@ -246,9 +277,10 @@ export class Video {
           reject(err);
         }
         const srtTimingRegex = /^([^,]+),([^ ]+) --> ([^,]+),([^ ]+)$/;
-        const intervals = data.split(/[\r\n]/)
-          .filter(s => srtTimingRegex.test(s))
-          .map(s => {
+        const intervals = data
+          .split(/[\r\n]/)
+          .filter((s) => srtTimingRegex.test(s))
+          .map((s) => {
             const res = srtTimingRegex.exec(s);
             return {
               start: `${res[1]}.${res[2]}`,

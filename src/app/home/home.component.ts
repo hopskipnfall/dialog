@@ -8,7 +8,7 @@ import { VideoService } from '../video.service';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
-  styleUrls: ['./home.component.scss']
+  styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent implements OnInit, OnDestroy {
   videos: VideoModel[] = [];
@@ -26,21 +26,19 @@ export class HomeComponent implements OnInit, OnDestroy {
       console.log('it died', event, error);
     });
   }
-  ngOnDestroy(): void {
-
-  }
+  ngOnDestroy(): void {}
 
   ngOnInit(): void {
     this.subs.push(
-      this.videoService.getVideos().subscribe(videos => {
+      this.videoService.getVideos().subscribe((videos) => {
         this.videos = videos;
         this.ref.detectChanges();
       }),
 
-      this.videoService.getProgressUpdates().subscribe(statuses => {
+      this.videoService.getProgressUpdates().subscribe((statuses) => {
         this.statuses = statuses;
         this.ref.detectChanges();
-      })
+      }),
     );
   }
 
@@ -75,7 +73,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     const phase = status.phase;
     if (phase === 'NOT_STARTED') {
-      return 'dark'
+      return 'dark';
     } else if (phase.startsWith('EXTRACTING_SUBTITLES')) {
       return 'info';
     } else if (phase.startsWith('EXTRACTING_DIALOG')) {

@@ -71,6 +71,9 @@ module.exports = {
         // 'unicorn/filename-case': 'off',
         '@typescript-eslint/no-unused-vars': 'warn',
         'unicorn/prevent-abbreviations': 'off',
+        "no-redeclare": "off",
+        "@typescript-eslint/no-redeclare": ["error"],
+        "import/prefer-default-export": "off",
       }
     },
     {
