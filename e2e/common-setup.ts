@@ -1,4 +1,4 @@
-const Application = require('spectron').Application;
+const { Application } = require('spectron');
 const electronPath = require('electron'); // Require Electron from the binaries included in node_modules.
 const path = require('path');
 

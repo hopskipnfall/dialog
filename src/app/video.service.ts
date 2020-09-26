@@ -17,6 +17,7 @@ export interface VideoExtractionConfig {
 })
 export class VideoService implements OnDestroy {
   private videos: VideoModel[] = [];
+
   private videosSubject: BehaviorSubject<VideoModel[]> = new BehaviorSubject(this.videos);
 
   private extractionQueue: VideoExtractionConfig[] = [];

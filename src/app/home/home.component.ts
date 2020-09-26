@@ -12,6 +12,7 @@ import { VideoService } from '../video.service';
 })
 export class HomeComponent implements OnInit, OnDestroy {
   videos: VideoModel[] = [];
+
   subs: Subscription[] = [];
 
   statuses: { [key: string]: ExtractionStatus } = {};
@@ -26,6 +27,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       console.log('it died', event, error);
     });
   }
+
   ngOnDestroy(): void {}
 
   ngOnInit(): void {
@@ -71,19 +73,22 @@ export class HomeComponent implements OnInit, OnDestroy {
     const status = this.getStatus(video);
     if (!status) return 'dark';
 
-    const phase = status.phase;
+    const { phase } = status;
     if (phase === 'NOT_STARTED') {
       return 'dark';
-    } else if (phase.startsWith('EXTRACTING_SUBTITLES')) {
-      return 'info';
-    } else if (phase.startsWith('EXTRACTING_DIALOG')) {
-      return 'primary';
-    } else if (phase.startsWith('ERROR')) {
-      return 'danger';
-    } else if (phase === 'DONE') {
-      return 'success';
-    } else {
-      return 'dark';
     }
+    if (phase.startsWith('EXTRACTING_SUBTITLES')) {
+      return 'info';
+    }
+    if (phase.startsWith('EXTRACTING_DIALOG')) {
+      return 'primary';
+    }
+    if (phase.startsWith('ERROR')) {
+      return 'danger';
+    }
+    if (phase === 'DONE') {
+      return 'success';
+    }
+    return 'dark';
   }
 }

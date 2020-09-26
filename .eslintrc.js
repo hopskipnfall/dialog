@@ -25,7 +25,8 @@ module.exports = {
           "./tsconfig.serve.json",
           "./src/tsconfig.app.json",
           "./src/tsconfig.spec.json",
-          "./e2e/tsconfig.e2e.json"
+          "./e2e/tsconfig.e2e.json",
+          "./src/environments/environments.eslint.json",
         ],
         "sourceType": "module",
         "ecmaFeatures": {
@@ -74,6 +75,12 @@ module.exports = {
         "no-redeclare": "off",
         "@typescript-eslint/no-redeclare": ["error"],
         "import/prefer-default-export": "off",
+        "import/no-extraneous-dependencies": "warn",
+        "no-plusplus": "off",
+        "class-methods-use-this": "off",
+        "no-restricted-syntax": ["error", "ForInStatement", "LabeledStatement", "WithStatement"],
+        "prefer-promise-reject-errors": "warn",
+        "no-await-in-loop": "warn",
       }
     },
     {

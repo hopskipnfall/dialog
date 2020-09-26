@@ -11,4 +11,5 @@ getTestBed().initTestEnvironment(BrowserDynamicTestingModule, platformBrowserDyn
 // Then we find all the tests.
 const context = require.context('./', true, /\.spec\.ts$/);
 // And load the modules.
+// eslint-disable-next-line unicorn/no-fn-reference-in-iterator
 context.keys().map(context);

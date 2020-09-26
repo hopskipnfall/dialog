@@ -1,0 +1,8 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": [
+    "environment.dev.ts",
+    "environment.web.ts",
+    "environment.prod.ts"
+  ]
+}

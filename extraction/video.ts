@@ -2,7 +2,7 @@ import * as ffmpeg from 'fluent-ffmpeg';
 import * as fs from 'fs';
 import * as moment from 'moment';
 import * as os from 'os';
-import * as path from 'path';
+import path from 'path';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { FfpathsConfig } from './ffpaths';
 
@@ -56,6 +56,7 @@ export class Video {
   async extractDialog(): Promise<void> {
     try {
       this.scratchPath = fs.mkdtempSync(
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`),
       );
       console.log('Scratch path', this.scratchPath);
@@ -68,6 +69,7 @@ export class Video {
       // TODO: This somehow throws a user-visible error but does not stop execution.
       // Figure out how to catch this and prevent moving forward.
       this.stream = fs.createWriteStream(
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         `${path.join(outputFolder, path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`,
       );
       await this.extractSubtitles();
@@ -83,20 +85,21 @@ export class Video {
         percentage: 100,
       });
       console.log('Extraction complete.');
-    } catch (e) {
+    } catch (error) {
       this.extractionProgress.next({
         uri: this.videoPath,
         phase: 'ERROR',
         percentage: 100,
-        debug: e,
+        debug: error,
       });
-      throw e;
+      throw error;
     }
   }
 
   async extractDialogNew(config: any): Promise<void> {
     try {
       this.scratchPath = fs.mkdtempSync(
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`),
       );
       console.log('Scratch path', this.scratchPath);
@@ -109,6 +112,7 @@ export class Video {
       // TODO: This somehow throws a user-visible error but does not stop execution.
       // Figure out how to catch this and prevent moving forward.
       this.stream = fs.createWriteStream(
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         `${path.join(outputFolder, path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`,
       );
       await this.extractSubtitles(config.subtitleStream);
@@ -125,13 +129,13 @@ export class Video {
         percentage: 100,
       });
       console.log('Extraction complete.');
-    } catch (e) {
+    } catch (error) {
       this.extractionProgress.next({
         uri: this.videoPath,
         phase: 'ERROR',
         percentage: 100,
       });
-      throw e;
+      throw error;
     }
   }
 
@@ -152,8 +156,10 @@ export class Video {
 
     let out: Interval[] = [...combined];
 
+    // eslint-disable-next-line no-restricted-syntax
     for (const chapter of chapterIntervals) {
       const revision = [];
+      // eslint-disable-next-line no-restricted-syntax
       for (const ivl of out) {
         const cur: Interval = { start: ivl.start, end: ivl.end };
         if (cur.start > chapter.start && cur.start < chapter.end) {
@@ -188,10 +194,10 @@ export class Video {
         command
           .on('error', (err, stdout: string, stderr: string) => {
             console.error('SOMETHING WENT WRONG', err, stdout, stderr);
-            reject({ err: err, stdout: stdout, stderr: stderr });
+            reject({ err, stdout, stderr });
           })
           .on('end', (stdout: string, stderr: string) => {
-            resolve({ stdout: stdout, stderr: stderr });
+            resolve({ stdout, stderr });
           }),
       );
     });
@@ -205,7 +211,7 @@ export class Video {
       const interval = intervals[i];
       const command = ffmpeg(this.videoPath)
         .noVideo()
-        .outputOption(`-ss`, `${interval.start}`, `-to`, `${interval.end}`, '-map', `0:${track}`) //, "-q:a", "0", "-map", "a")
+        .outputOption('-ss', `${interval.start}`, '-to', `${interval.end}`, '-map', `0:${track}`) // , "-q:a", "0", "-map", "a")
         .audioBitrate('128k')
         .audioCodec('libmp3lame')
         .format('mp3')
@@ -216,9 +222,8 @@ export class Video {
             percentage: (((1 / intervals.length) * (+progress.percent / 100) + i) * 100) / intervals.length,
           });
         });
-      await this.toPromise(command, (command) =>
-        command.pipe(this.stream, i === max - 1 ? { end: true } : { end: false }),
-      );
+      // eslint-disable-next-line no-await-in-loop
+      await this.toPromise(command, (cmd) => cmd.pipe(this.stream, i === max - 1 ? { end: true } : { end: false }));
     }
   }
 
@@ -234,7 +239,7 @@ export class Video {
           percentage: progress.percent,
         });
       });
-    return this.toPromise(command, (command) => command.run());
+    return this.toPromise(command, (cmd) => cmd.run());
   }
 
   private isGapOverThreshold(start: string, end: string) {
@@ -242,6 +247,7 @@ export class Video {
   }
 
   private combineIntervals(intervals: Interval[]): Interval[] {
+    // eslint-disable-next-line no-param-reassign,unicorn/no-nested-ternary
     intervals = intervals.sort((a, b) => (a.start > b.start ? 1 : b.start > a.start ? -1 : 0));
 
     const combined: Interval[] = [];
@@ -252,13 +258,13 @@ export class Video {
           pending = { start: pending.start, end: cur.end };
         }
       } else {
-        if (pending.start != pending.end) {
+        if (pending.start !== pending.end) {
           combined.push(pending);
         }
         pending = cur;
       }
     }
-    if (pending.start != pending.end) {
+    if (pending.start !== pending.end) {
       combined.push(pending);
     }
 
@@ -278,7 +284,7 @@ export class Video {
         }
         const srtTimingRegex = /^([^,]+),([^ ]+) --> ([^,]+),([^ ]+)$/;
         const intervals = data
-          .split(/[\r\n]/)
+          .split(/[\n\r]/)
           .filter((s) => srtTimingRegex.test(s))
           .map((s) => {
             const res = srtTimingRegex.exec(s);
