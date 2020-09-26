@@ -1,7 +1,7 @@
 import * as ffmpeg from '@ffmpeg-installer/ffmpeg';
 import * as ffprobe from '@ffprobe-installer/ffprobe';
 import { app, BrowserWindow, dialog, ipcMain, screen } from 'electron';
-import path from 'path';
+import * as path from 'path'; // eslint-disable-line unicorn/import-style
 import * as url from 'url';
 import { Video } from './extraction/video';
 

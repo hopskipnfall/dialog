@@ -2,7 +2,7 @@ import * as ffmpeg from 'fluent-ffmpeg';
 import * as fs from 'fs';
 import * as moment from 'moment';
 import * as os from 'os';
-import path from 'path';
+import * as path from 'path'; // eslint-disable-line unicorn/import-style
 import { BehaviorSubject, Observable } from 'rxjs';
 import { FfpathsConfig } from './ffpaths';
 
