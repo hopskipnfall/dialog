@@ -79,6 +79,12 @@ module.exports = {
         'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
         'prefer-promise-reject-errors': 'warn',
         'no-await-in-loop': 'warn',
+        'prettier/prettier': [
+          'error',
+          {
+            endOfLine: 'auto',
+          },
+        ],
       },
     },
     {
