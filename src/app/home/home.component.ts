@@ -8,10 +8,11 @@ import { VideoService } from '../video.service';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
-  styleUrls: ['./home.component.scss']
+  styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent implements OnInit, OnDestroy {
   videos: VideoModel[] = [];
+
   subs: Subscription[] = [];
 
   statuses: { [key: string]: ExtractionStatus } = {};
@@ -26,21 +27,20 @@ export class HomeComponent implements OnInit, OnDestroy {
       console.log('it died', event, error);
     });
   }
-  ngOnDestroy(): void {
 
-  }
+  ngOnDestroy(): void {}
 
   ngOnInit(): void {
     this.subs.push(
-      this.videoService.getVideos().subscribe(videos => {
+      this.videoService.getVideos().subscribe((videos) => {
         this.videos = videos;
         this.ref.detectChanges();
       }),
 
-      this.videoService.getProgressUpdates().subscribe(statuses => {
+      this.videoService.getProgressUpdates().subscribe((statuses) => {
         this.statuses = statuses;
         this.ref.detectChanges();
-      })
+      }),
     );
   }
 
@@ -73,19 +73,22 @@ export class HomeComponent implements OnInit, OnDestroy {
     const status = this.getStatus(video);
     if (!status) return 'dark';
 
-    const phase = status.phase;
+    const { phase } = status;
     if (phase === 'NOT_STARTED') {
-      return 'dark'
-    } else if (phase.startsWith('EXTRACTING_SUBTITLES')) {
-      return 'info';
-    } else if (phase.startsWith('EXTRACTING_DIALOG')) {
-      return 'primary';
-    } else if (phase.startsWith('ERROR')) {
-      return 'danger';
-    } else if (phase === 'DONE') {
-      return 'success';
-    } else {
       return 'dark';
     }
+    if (phase.startsWith('EXTRACTING_SUBTITLES')) {
+      return 'info';
+    }
+    if (phase.startsWith('EXTRACTING_DIALOG')) {
+      return 'primary';
+    }
+    if (phase.startsWith('ERROR')) {
+      return 'danger';
+    }
+    if (phase === 'DONE') {
+      return 'success';
+    }
+    return 'dark';
   }
 }

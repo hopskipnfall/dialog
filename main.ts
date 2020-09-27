@@ -15,7 +15,6 @@ const args = process.argv.slice(1),
   serve = args.some(val => val === '--serve');
 
 function createWindow(): BrowserWindow {
-
   const electronScreen = screen;
   const size = electronScreen.getPrimaryDisplay().workAreaSize;
   console.log('Screen size', size);
@@ -28,24 +27,26 @@ function createWindow(): BrowserWindow {
     height: 660,
     webPreferences: {
       nodeIntegration: true,
-      allowRunningInsecureContent: (serve) ? true : false,
+      allowRunningInsecureContent: !!serve,
       enableRemoteModule: true, // true if you want to use remote module in renderer context (e.g. Angular)
     },
   });
   if (serve) {
-
     win.webContents.openDevTools();
+    // eslint-disable-next-line global-require
     require('electron-reload')(__dirname, {
-      electron: require(`${__dirname}/node_modules/electron`)
+      // eslint-disable-next-line global-require,import/no-dynamic-require
+      electron: require(`${__dirname}/node_modules/electron`),
     });
     win.loadURL('http://localhost:4200');
-
   } else {
-    win.loadURL(url.format({
-      pathname: path.join(__dirname, 'dist/index.html'),
-      protocol: 'file:',
-      slashes: true
-    }));
+    win.loadURL(
+      url.format({
+        pathname: path.join(__dirname, 'dist/index.html'),
+        protocol: 'file:',
+        slashes: true,
+      }),
+    );
 
     // win.webContents.openDevTools(); // TODO: Un-submit.
   }
@@ -55,7 +56,7 @@ function createWindow(): BrowserWindow {
     // Dereference the window object, usually you would store window
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
-    win = null;
+    win = undefined;
   });
 
   return win;
@@ -77,22 +78,19 @@ const selectFiles = async (event: Electron.IpcMainEvent) => {
     const humanName = path.basename(val.format.filename);
     event.sender.send('new-files', humanName, val);
   }
-}
+};
 
 ipcMain.on('select-files', (event) => {
-  selectFiles(event)
-    .catch(reason => {
-      event.sender.send('error', `Error occurred while selecting files: ${reason as string}`);
-    });
+  selectFiles(event).catch((error) => {
+    event.sender.send('error', `Error occurred while selecting files: ${error as string}`);
+  });
 });
 
 const extractDialog = async (event: Electron.IpcMainEvent, vidConfigs: any[]) => {
   console.log('VidConfigs!', vidConfigs);
 
-  for (let i = 0; i < vidConfigs.length; i++) {
-    const vidConfig = vidConfigs[i];
-
-    const myUri = vidConfig.video.ffprobeData.format.filename; //(vidConfig.video.ffprobeData.format as FfprobeData).format.filename;
+  for (const vidConfig of vidConfigs) {
+    const myUri = vidConfig.video.ffprobeData.format.filename; // (vidConfig.video.ffprobeData.format as FfprobeData).format.filename;
     console.log('Extracting for file', myUri);
     const v = new Video(myUri);
     const sub = v.getProgress().subscribe(status => {
@@ -104,10 +102,9 @@ const extractDialog = async (event: Electron.IpcMainEvent, vidConfigs: any[]) =>
 };
 
 ipcMain.on('extract-dialog-new', (event, vidConfigs) => {
-  extractDialog(event, vidConfigs)
-    .catch(reason => {
-      event.sender.send('error', `Error occurred while extracting dialog: ${reason as string}`);
-    });
+  extractDialog(event, vidConfigs).catch((error) => {
+    event.sender.send('error', `Error occurred while extracting dialog: ${error as string}`);
+  });
 });
 
 readSubtitlesListener(async (event, request) => {
@@ -151,8 +148,7 @@ try {
       createWindow();
     }
   });
-
-} catch (e) {
+} catch {
   // Catch Error
   // throw e;
 }

@@ -22,11 +22,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [
-    RouterModule.forRoot(routes),
-    HomeRoutingModule,
-    DetailRoutingModule
-  ],
-  exports: [RouterModule]
+  imports: [RouterModule.forRoot(routes), HomeRoutingModule, DetailRoutingModule],
+  exports: [RouterModule],
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}
