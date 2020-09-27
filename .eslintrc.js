@@ -11,12 +11,15 @@ module.exports = {
       extends: [
         'airbnb-typescript/base',
         // 'plugin:unicorn/recommended',
+
+        'eslint:recommended',
+        'plugin:@typescript-eslint/eslint-recommended',
         'plugin:@typescript-eslint/recommended',
         'plugin:@typescript-eslint/recommended-requiring-type-checking',
+
         'plugin:prettier/recommended',
         'prettier',
         'prettier/@typescript-eslint',
-        // "plugin:@typescript-eslint/eslint-recommended",
       ],
       parser: '@typescript-eslint/parser',
       parserOptions: {

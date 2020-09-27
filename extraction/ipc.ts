@@ -4,9 +4,8 @@ import { ReadSubtitlesRequest, ReadSubtitlesResponse, ServerMessage } from '../s
 const toString = (maybeString: unknown): string => {
   if (typeof maybeString === 'object' && maybeString !== null) {
     return JSON.stringify(maybeString);
-  } else {
-    return `${maybeString as string}`;
   }
+  return `${maybeString as string}`;
 };
 
 const finalize = (event: IpcMainEvent, promise: Promise<ServerMessage>) => {
