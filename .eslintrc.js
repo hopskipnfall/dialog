@@ -76,9 +76,7 @@ module.exports = {
           },
         ],
         quotes: ['error', 'single'],
-        // 'unicorn/filename-case': 'off',
-        '@typescript-eslint/no-unused-vars': 'warn',
-        // 'unicorn/prevent-abbreviations': 'off',
+        '@typescript-eslint/no-unused-vars': 'off', // It's broken for imports..........
         'no-redeclare': 'off',
         '@typescript-eslint/no-redeclare': ['error'],
         'import/prefer-default-export': 'off',

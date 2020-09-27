@@ -45,7 +45,17 @@ export class VideoService implements OnDestroy {
       copy[response.path].percentage = 0;
       copy[response.path].phase = 'PENDING';
       this.statusMap.next(copy);
+
+      const config = this.extractionQueue.find((c) => c.video.ffprobeData.format.filename === response.path);
+      if (!config) {
+        throw Error('WHAT HAPPENED');
+      }
+      this.extractAudio(config);
     });
+  }
+
+  extractAudio(videoConfig: VideoExtractionConfig): void {
+    this.electron.ipcRenderer.send('');
   }
 
   getProgressUpdates(): Observable<{ [key: string]: any }> {
@@ -62,6 +72,7 @@ export class VideoService implements OnDestroy {
     };
     this.electron.ipcRenderer.send('read-subtitles', request);
     this.router.navigateByUrl('/');
+    this.extractionQueue.push(videoConfigs[0]);
   }
 
   addVideos(): void {
