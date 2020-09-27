@@ -1,0 +1,11 @@
+# Ignore artifacts:
+release-builds
+node_modules
+
+# Compiled output:
+**/*.js.map
+main.js
+
+src/**/*.js
+extraction/**/*.js
+e2e/**/*.js

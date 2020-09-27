@@ -88,7 +88,6 @@ export class WizardComponent implements OnInit {
           count: counts[title],
         };
       })
-      // eslint-disable-next-line unicorn/no-nested-ternary
       .sort((a, b) => (a.medianStart > b.medianStart ? 1 : b.medianStart > a.medianStart ? -1 : 0));
   }
 

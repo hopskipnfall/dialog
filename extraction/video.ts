@@ -4,7 +4,6 @@ import * as moment from 'moment';
 import * as os from 'os';
 import * as path from 'path'; // eslint-disable-line unicorn/import-style
 import { BehaviorSubject, Observable } from 'rxjs';
-import { FfpathsConfig } from './ffpaths';
 
 type Statuses =
   | 'NOT_STARTED'
@@ -35,8 +34,7 @@ export class Video {
     percentage: 0,
   });
 
-  constructor(private videoPath: string) {
-  }
+  constructor(private videoPath: string) {}
 
   getProgress(): Observable<ExtractionStatus> {
     return this.extractionProgress;
@@ -53,7 +51,9 @@ export class Video {
 
   async extractDialog(): Promise<void> {
     try {
-      const scratchPath = fs.mkdtempSync(path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`));
+      const scratchPath = fs.mkdtempSync(
+        path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`),
+      );
       console.log('Scratch path', scratchPath);
       fs.mkdirSync(scratchPath, { recursive: true });
       // TODO: Is there a better way to find the "desktop" folder?
@@ -64,7 +64,8 @@ export class Video {
       // TODO: This somehow throws a user-visible error but does not stop execution.
       // Figure out how to catch this and prevent moving forward.
       this.stream = fs.createWriteStream(
-        `${path.join(outputFolder, path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`);
+        `${path.join(outputFolder, path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`,
+      );
       const subtitlesPath = path.join(scratchPath, 'subs.srt');
       await this.extractSubtitles(subtitlesPath);
       const intervals = await this.getSubtitleIntervals(subtitlesPath);
@@ -92,7 +93,9 @@ export class Video {
 
   async extractDialogNew(config: any): Promise<void> {
     try {
-      const scratchPath = fs.mkdtempSync(path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`));
+      const scratchPath = fs.mkdtempSync(
+        path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`),
+      );
       console.log('Scratch path', scratchPath);
       fs.mkdirSync(scratchPath, { recursive: true });
       // TODO: Is there a better way to find the "desktop" folder?
@@ -103,7 +106,8 @@ export class Video {
       // TODO: This somehow throws a user-visible error but does not stop execution.
       // Figure out how to catch this and prevent moving forward.
       this.stream = fs.createWriteStream(
-        `${path.join(outputFolder, path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`);
+        `${path.join(outputFolder, path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`,
+      );
       const subtitlesPath = path.join(scratchPath, 'subs.srt');
       await this.extractSubtitles(subtitlesPath, config.subtitleStream);
       const intervals = await this.getSubtitleIntervals(subtitlesPath);
@@ -222,14 +226,20 @@ export class Video {
     const command = ffmpeg(this.videoPath)
       .outputOption(`-map 0:${track}`)
       .saveToFile(outputPath)
-      .on('progress', progress => {
-        this.extractionProgress.next({ uri: this.videoPath, phase: 'EXTRACTING_SUBTITLES', percentage: progress.percent });
+      .on('progress', (progress) => {
+        this.extractionProgress.next({
+          uri: this.videoPath,
+          phase: 'EXTRACTING_SUBTITLES',
+          percentage: progress.percent,
+        });
       });
     return this.toPromise(command, (cmd) => cmd.run());
   }
 
   async readSubtitles(stream: ffmpeg.FfprobeStream): Promise<string> {
-    const scratchPath = fs.mkdtempSync(path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`));
+    const scratchPath = fs.mkdtempSync(
+      path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`),
+    );
     console.log('Scratch path', scratchPath);
     fs.mkdirSync(scratchPath, { recursive: true });
 
@@ -238,10 +248,14 @@ export class Video {
     const command = ffmpeg(this.videoPath)
       .outputOption(`-map 0:${track}`)
       .saveToFile(tempFile)
-      .on('progress', progress => {
-        this.extractionProgress.next({ uri: this.videoPath, phase: 'EXTRACTING_SUBTITLES', percentage: progress.percent });
+      .on('progress', (progress) => {
+        this.extractionProgress.next({
+          uri: this.videoPath,
+          phase: 'EXTRACTING_SUBTITLES',
+          percentage: progress.percent,
+        });
       });
-    await this.toPromise(command, command => command.run());
+    await this.toPromise(command, (command) => command.run());
 
     const out = await this.readTextFile(tempFile);
 

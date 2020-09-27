@@ -12,7 +12,7 @@ ffmpeg.setFfprobePath(ffprobeInstaller.path.replace('app.asar', 'app.asar.unpack
 
 let win: BrowserWindow = null;
 const args = process.argv.slice(1),
-  serve = args.some(val => val === '--serve');
+  serve = args.some((val) => val === '--serve');
 
 function createWindow(): BrowserWindow {
   const electronScreen = screen;
@@ -73,8 +73,7 @@ const selectFiles = async (event: Electron.IpcMainEvent) => {
   }
 
   for (const file of value.filePaths) {
-    const val = await new Video(file)
-      .getInfo();
+    const val = await new Video(file).getInfo();
     const humanName = path.basename(val.format.filename);
     event.sender.send('new-files', humanName, val);
   }
@@ -93,7 +92,7 @@ const extractDialog = async (event: Electron.IpcMainEvent, vidConfigs: any[]) =>
     const myUri = vidConfig.video.ffprobeData.format.filename; // (vidConfig.video.ffprobeData.format as FfprobeData).format.filename;
     console.log('Extracting for file', myUri);
     const v = new Video(myUri);
-    const sub = v.getProgress().subscribe(status => {
+    const sub = v.getProgress().subscribe((status) => {
       event.sender.send('progress-update', status);
     });
     await v.extractDialogNew(vidConfig);
@@ -108,9 +107,9 @@ ipcMain.on('extract-dialog-new', (event, vidConfigs) => {
 });
 
 readSubtitlesListener(async (event, request) => {
-  console.log('Reading subtitles request', request)
+  console.log('Reading subtitles request', request);
   const v = new Video(request.path);
-  const sub = v.getProgress().subscribe(status => {
+  const sub = v.getProgress().subscribe((status) => {
     event.sender.send('progress-update', status);
   });
 
@@ -121,9 +120,9 @@ readSubtitlesListener(async (event, request) => {
   return {
     type: 'read-subtitles-response',
     path: request.path,
-    subtitles
+    subtitles,
   };
-})
+});
 
 try {
   // This method will be called when Electron has finished

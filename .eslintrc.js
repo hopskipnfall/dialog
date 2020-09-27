@@ -10,7 +10,7 @@ module.exports = {
       files: ['*.ts'],
       extends: [
         'airbnb-typescript/base',
-        'plugin:unicorn/recommended',
+        // 'plugin:unicorn/recommended',
         'plugin:@typescript-eslint/recommended',
         'plugin:@typescript-eslint/recommended-requiring-type-checking',
         'plugin:prettier/recommended',
@@ -33,7 +33,13 @@ module.exports = {
           modules: true,
         },
       },
-      plugins: ['@typescript-eslint', 'prettier', 'unicorn', 'import', '@angular-eslint/eslint-plugin'],
+      plugins: [
+        '@typescript-eslint',
+        'prettier',
+        //  'unicorn',
+        'import',
+        '@angular-eslint/eslint-plugin',
+      ],
       rules: {
         '@typescript-eslint/indent': [
           'error',
@@ -69,7 +75,7 @@ module.exports = {
         quotes: ['error', 'single'],
         // 'unicorn/filename-case': 'off',
         '@typescript-eslint/no-unused-vars': 'warn',
-        'unicorn/prevent-abbreviations': 'off',
+        // 'unicorn/prevent-abbreviations': 'off',
         'no-redeclare': 'off',
         '@typescript-eslint/no-redeclare': ['error'],
         'import/prefer-default-export': 'off',
