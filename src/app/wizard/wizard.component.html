@@ -28,23 +28,9 @@
         Subtitle tracks
         <br />
 
-        <div
-          class="btn-group btn-group-toggle"
-          ngbRadioGroup
-          name="radioBasic"
-          [(ngModel)]="formVideo.subtitleStream"
-        >
-          <label
-            ngbButtonLabel
-            class="btn-primary"
-            *ngFor="let track of getSubtitleTracks(formVideo.video)"
-          >
-            <input
-              ngbButton
-              type="radio"
-              [value]="track"
-              [disabled]="getSubtitleTracks(formVideo.video).length < 2"
-            />
+        <div class="btn-group btn-group-toggle" ngbRadioGroup name="radioBasic" [(ngModel)]="formVideo.subtitleStream">
+          <label ngbButtonLabel class="btn-primary" *ngFor="let track of getSubtitleTracks(formVideo.video)">
+            <input ngbButton type="radio" [value]="track" [disabled]="getSubtitleTracks(formVideo.video).length < 2" />
             {{ getName(track) }}
           </label>
         </div>
