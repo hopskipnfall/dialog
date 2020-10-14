@@ -311,6 +311,7 @@ export class Video {
     return combined;
   }
 
+  /** @deprecated */
   private getSubtitleIntervals(subtitlePath: string): Promise<Interval[]> {
     return new Promise((resolve, reject) => {
       fs.readFile(subtitlePath, 'utf8', (err, data) => {

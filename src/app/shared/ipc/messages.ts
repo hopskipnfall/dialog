@@ -23,3 +23,8 @@ export type ReadSubtitlesResponse = {
 export type ClientMessage = ReadSubtitlesRequest;
 
 export type ServerMessage = ReadSubtitlesResponse;
+
+export interface Interval {
+  start: string;
+  end: string;
+}

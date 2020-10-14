@@ -5,6 +5,7 @@ node_modules
 # Compiled output:
 **/*.js.map
 main.js
+dist
 
 src/**/*.js
 extraction/**/*.js
