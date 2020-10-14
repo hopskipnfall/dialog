@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign,no-restricted-syntax,prefer-const,no-continue,dot-notation */
 /**
  * Custom angular webpack configuration
  */
