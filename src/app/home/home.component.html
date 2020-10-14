@@ -3,11 +3,16 @@
     {{ 'PAGES.HOME.TITLE' | translate }}
   </h1>
 
-  <button class="btn btn-primary" type="button" (click)="doThing()">Add Videos</button>
+  <button class="btn btn-primary" type="button" (click)="doThing()">
+    Add Videos
+  </button>
   <br />
 
   <ngb-accordion [closeOthers]="true" activeIds="static-1" style="width: 100%">
-    <ngb-panel id="{{ video.ffprobeData.format.filename }}" *ngFor="let video of videos">
+    <ngb-panel
+      id="{{ video.ffprobeData.format.filename }}"
+      *ngFor="let video of videos"
+    >
       <ng-template ngbPanelTitle>
         <span>
           {{ video.filename }}

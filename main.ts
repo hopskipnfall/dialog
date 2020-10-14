@@ -7,8 +7,12 @@ import * as url from 'url';
 import { readSubtitlesListener } from './extraction/ipc';
 import { Video } from './extraction/video';
 
-ffmpeg.setFfmpegPath(ffmpegInstaller.path.replace('app.asar', 'app.asar.unpacked'));
-ffmpeg.setFfprobePath(ffprobeInstaller.path.replace('app.asar', 'app.asar.unpacked'));
+ffmpeg.setFfmpegPath(
+  ffmpegInstaller.path.replace('app.asar', 'app.asar.unpacked'),
+);
+ffmpeg.setFfprobePath(
+  ffprobeInstaller.path.replace('app.asar', 'app.asar.unpacked'),
+);
 
 let win: BrowserWindow = null;
 const args = process.argv.slice(1),
@@ -81,11 +85,17 @@ const selectFiles = async (event: Electron.IpcMainEvent) => {
 
 ipcMain.on('select-files', (event) => {
   selectFiles(event).catch((error) => {
-    event.sender.send('error', `Error occurred while selecting files: ${error as string}`);
+    event.sender.send(
+      'error',
+      `Error occurred while selecting files: ${error as string}`,
+    );
   });
 });
 
-const extractDialog = async (event: Electron.IpcMainEvent, vidConfigs: any[]) => {
+const extractDialog = async (
+  event: Electron.IpcMainEvent,
+  vidConfigs: any[],
+) => {
   console.log('VidConfigs!', vidConfigs);
 
   for (const vidConfig of vidConfigs) {
@@ -102,7 +112,10 @@ const extractDialog = async (event: Electron.IpcMainEvent, vidConfigs: any[]) =>
 
 ipcMain.on('extract-dialog-new', (event, vidConfigs) => {
   extractDialog(event, vidConfigs).catch((error) => {
-    event.sender.send('error', `Error occurred while extracting dialog: ${error as string}`);
+    event.sender.send(
+      'error',
+      `Error occurred while extracting dialog: ${error as string}`,
+    );
   });
 });
 

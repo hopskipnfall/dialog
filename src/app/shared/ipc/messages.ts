@@ -1,8 +1,15 @@
 import * as ffmpeg from 'fluent-ffmpeg';
 
-export type ServerIpcEvent = 'read-subtitles-response' | 'progress-update' | 'new-files' | 'error';
+export type ServerIpcEvent =
+  | 'read-subtitles-response'
+  | 'progress-update'
+  | 'new-files'
+  | 'error';
 
-export type ClientIpcEvent = 'read-subtitles' | 'select-files' | 'extract-dialog-new';
+export type ClientIpcEvent =
+  | 'read-subtitles'
+  | 'select-files'
+  | 'extract-dialog-new';
 
 const CLIENT_READ_SUBTITLES = 'read-subtitles';
 

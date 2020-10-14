@@ -52,5 +52,11 @@ module.exports = {
     ],
     'no-unused-vars': 'warn',
   },
-  ignorePatterns: ['dist/**', 'coverage/**', 'src/**/*.js', 'extraction/**/*.js', 'main.js'],
+  ignorePatterns: [
+    'dist/**',
+    'coverage/**',
+    'src/**/*.js',
+    'extraction/**/*.js',
+    'main.js',
+  ],
 };

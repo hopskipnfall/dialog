@@ -52,7 +52,10 @@ export class Video {
   async extractDialog(): Promise<void> {
     try {
       const scratchPath = fs.mkdtempSync(
-        path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`),
+        path.join(
+          os.tmpdir(),
+          `${path.basename(this.videoPath, path.extname(this.videoPath))}-`,
+        ),
       );
       console.log('Scratch path', scratchPath);
       fs.mkdirSync(scratchPath, { recursive: true });
@@ -64,7 +67,10 @@ export class Video {
       // TODO: This somehow throws a user-visible error but does not stop execution.
       // Figure out how to catch this and prevent moving forward.
       this.stream = fs.createWriteStream(
-        `${path.join(outputFolder, path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`,
+        `${path.join(
+          outputFolder,
+          path.basename(this.videoPath, path.extname(this.videoPath)),
+        )}.mp3`,
       );
       const subtitlesPath = path.join(scratchPath, 'subs.srt');
       await this.extractSubtitles(subtitlesPath);
@@ -94,7 +100,10 @@ export class Video {
   async extractDialogNew(config: any): Promise<void> {
     try {
       const scratchPath = fs.mkdtempSync(
-        path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`),
+        path.join(
+          os.tmpdir(),
+          `${path.basename(this.videoPath, path.extname(this.videoPath))}-`,
+        ),
       );
       console.log('Scratch path', scratchPath);
       fs.mkdirSync(scratchPath, { recursive: true });
@@ -106,7 +115,10 @@ export class Video {
       // TODO: This somehow throws a user-visible error but does not stop execution.
       // Figure out how to catch this and prevent moving forward.
       this.stream = fs.createWriteStream(
-        `${path.join(outputFolder, path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`,
+        `${path.join(
+          outputFolder,
+          path.basename(this.videoPath, path.extname(this.videoPath)),
+        )}.mp3`,
       );
       const subtitlesPath = path.join(scratchPath, 'subs.srt');
       await this.extractSubtitles(subtitlesPath, config.subtitleStream);
@@ -133,7 +145,10 @@ export class Video {
     }
   }
 
-  private async subtractChapters(combined: Interval[], chapters: string[]): Promise<Interval[]> {
+  private async subtractChapters(
+    combined: Interval[],
+    chapters: string[],
+  ): Promise<Interval[]> {
     const info = await this.getInfo();
 
     const chapterIntervals: Interval[] = [];
@@ -173,10 +188,16 @@ export class Video {
   }
 
   private formalize(duration: moment.Duration): string {
-    return `${`${duration.hours()}`.padStart(2, '0')}:${`${duration.minutes()}`.padStart(
+    return `${`${duration.hours()}`.padStart(
       2,
       '0',
-    )}:${`${duration.seconds()}`.padStart(2, '0')}.${`${duration.milliseconds()}`.padStart(3, '0')}`;
+    )}:${`${duration.minutes()}`.padStart(
+      2,
+      '0',
+    )}:${`${duration.seconds()}`.padStart(
+      2,
+      '0',
+    )}.${`${duration.milliseconds()}`.padStart(3, '0')}`;
   }
 
   private async toPromise(
@@ -198,14 +219,24 @@ export class Video {
   }
 
   /** Synchronously extracts segments. */
-  private async extractAudio(intervals: Interval[], stream?: ffmpeg.FfprobeStream) {
+  private async extractAudio(
+    intervals: Interval[],
+    stream?: ffmpeg.FfprobeStream,
+  ) {
     const track = stream ? stream.index : 2; // TODO: get rid of 2
 
     for (let i = 0, max = intervals.length; i < max; i++) {
       const interval = intervals[i];
       const command = ffmpeg(this.videoPath)
         .noVideo()
-        .outputOption('-ss', `${interval.start}`, '-to', `${interval.end}`, '-map', `0:${track}`) // , "-q:a", "0", "-map", "a")
+        .outputOption(
+          '-ss',
+          `${interval.start}`,
+          '-to',
+          `${interval.end}`,
+          '-map',
+          `0:${track}`,
+        ) // , "-q:a", "0", "-map", "a")
         .audioBitrate('128k')
         .audioCodec('libmp3lame')
         .format('mp3')
@@ -213,15 +244,22 @@ export class Video {
           this.extractionProgress.next({
             uri: this.videoPath,
             phase: 'EXTRACTING_DIALOG',
-            percentage: (((1 / intervals.length) * (+progress.percent / 100) + i) * 100) / intervals.length,
+            percentage:
+              (((1 / intervals.length) * (+progress.percent / 100) + i) * 100) /
+              intervals.length,
           });
         });
       // eslint-disable-next-line no-await-in-loop
-      await this.toPromise(command, (cmd) => cmd.pipe(this.stream, i === max - 1 ? { end: true } : { end: false }));
+      await this.toPromise(command, (cmd) =>
+        cmd.pipe(this.stream, i === max - 1 ? { end: true } : { end: false }),
+      );
     }
   }
 
-  private async extractSubtitles(outputPath: string, stream?: ffmpeg.FfprobeStream) {
+  private async extractSubtitles(
+    outputPath: string,
+    stream?: ffmpeg.FfprobeStream,
+  ) {
     const track = stream ? stream.index : 2; // TODO: get rid of 2
     const command = ffmpeg(this.videoPath)
       .outputOption(`-map 0:${track}`)
@@ -238,7 +276,10 @@ export class Video {
 
   async readSubtitles(stream: ffmpeg.FfprobeStream): Promise<string> {
     const scratchPath = fs.mkdtempSync(
-      path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`),
+      path.join(
+        os.tmpdir(),
+        `${path.basename(this.videoPath, path.extname(this.videoPath))}-`,
+      ),
     );
     console.log('Scratch path', scratchPath);
     fs.mkdirSync(scratchPath, { recursive: true });
@@ -278,17 +319,24 @@ export class Video {
   }
 
   private isGapOverThreshold(start: string, end: string) {
-    return moment.duration(end).subtract(moment.duration(start)).milliseconds() > 150; // todo threshold
+    return (
+      moment.duration(end).subtract(moment.duration(start)).milliseconds() > 150
+    ); // todo threshold
   }
 
   private combineIntervals(intervals: Interval[]): Interval[] {
     // eslint-disable-next-line no-param-reassign,unicorn/no-nested-ternary
-    intervals = intervals.sort((a, b) => (a.start > b.start ? 1 : b.start > a.start ? -1 : 0));
+    intervals = intervals.sort((a, b) =>
+      a.start > b.start ? 1 : b.start > a.start ? -1 : 0,
+    );
 
     const combined: Interval[] = [];
     let pending = intervals[0];
     for (const cur of intervals) {
-      if (cur.start < pending.end || !this.isGapOverThreshold(pending.end, cur.start)) {
+      if (
+        cur.start < pending.end ||
+        !this.isGapOverThreshold(pending.end, cur.start)
+      ) {
         if (cur.end >= pending.end) {
           pending = { start: pending.start, end: cur.end };
         }

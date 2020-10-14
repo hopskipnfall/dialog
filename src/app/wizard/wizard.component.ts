@@ -79,7 +79,10 @@ export class WizardComponent implements OnInit {
 
     this.chapterSummaries = titles
       .map((title) => {
-        const start = moment.duration(this.median(startTimes[title]), 'seconds');
+        const start = moment.duration(
+          this.median(startTimes[title]),
+          'seconds',
+        );
         const end = moment.duration(this.median(endTimes[title]), 'seconds');
         return {
           title,
@@ -88,7 +91,13 @@ export class WizardComponent implements OnInit {
           count: counts[title],
         };
       })
-      .sort((a, b) => (a.medianStart > b.medianStart ? 1 : b.medianStart > a.medianStart ? -1 : 0));
+      .sort((a, b) =>
+        a.medianStart > b.medianStart
+          ? 1
+          : b.medianStart > a.medianStart
+          ? -1
+          : 0,
+      );
   }
 
   extract(): void {
@@ -105,10 +114,10 @@ export class WizardComponent implements OnInit {
   }
 
   private humanize(duration: moment.Duration) {
-    return `${duration.hours()}:${`${duration.minutes()}`.padStart(2, '0')}:${`${duration.seconds()}`.padStart(
+    return `${duration.hours()}:${`${duration.minutes()}`.padStart(
       2,
       '0',
-    )}`;
+    )}:${`${duration.seconds()}`.padStart(2, '0')}`;
   }
 
   private median(values: number[]): number {
@@ -143,23 +152,32 @@ export class WizardComponent implements OnInit {
 
   chapterClicked(chapter: ChapterSummary): void {
     if (this.isIgnoredChapter(chapter)) {
-      this.ignoredChapterTitles.splice(this.ignoredChapterTitles.indexOf(chapter.title), 1);
+      this.ignoredChapterTitles.splice(
+        this.ignoredChapterTitles.indexOf(chapter.title),
+        1,
+      );
     } else {
       this.ignoredChapterTitles.push(chapter.title);
     }
   }
 
   getAudioTracks(video: VideoModel): ffmpeg.FfprobeStream[] {
-    return video.ffprobeData.streams.filter((stream) => stream.codec_type === 'audio');
+    return video.ffprobeData.streams.filter(
+      (stream) => stream.codec_type === 'audio',
+    );
   }
 
   getSubtitleTracks(video: VideoModel): ffmpeg.FfprobeStream[] {
-    return video.ffprobeData.streams.filter((stream) => stream.codec_type === 'subtitle');
+    return video.ffprobeData.streams.filter(
+      (stream) => stream.codec_type === 'subtitle',
+    );
   }
 
   getName(stream: ffmpeg.FfprobeStream): string {
-    const name: string = stream.tags && stream.tags.language ? stream.tags.title : 'No title';
-    const language: string = stream.tags && stream.tags.language ? stream.tags.language : 'No title';
+    const name: string =
+      stream.tags && stream.tags.language ? stream.tags.title : 'No title';
+    const language: string =
+      stream.tags && stream.tags.language ? stream.tags.language : 'No title';
     return `${name || 'No title'} (${language || 'No language'})`;
   }
 }

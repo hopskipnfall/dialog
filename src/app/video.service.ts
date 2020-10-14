@@ -3,7 +3,11 @@ import { Router } from '@angular/router';
 import * as ffmpeg from 'fluent-ffmpeg';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { ElectronService } from './core/services';
-import { Interval, ReadSubtitlesRequest, ReadSubtitlesResponse } from './shared/ipc/messages';
+import {
+  Interval,
+  ReadSubtitlesRequest,
+  ReadSubtitlesResponse,
+} from './shared/ipc/messages';
 import { ExtractionStatus, VideoModel } from './shared/models/video-model';
 import { sortOnField } from './shared/sort';
 
@@ -37,7 +41,10 @@ const combineIntervals = (intervals: Interval[]): Interval[] => {
   const combined: Interval[] = [];
   let pending = sorted[0];
   for (const cur of sorted) {
-    if (cur.start < pending.end || !this.isGapOverThreshold(pending.end, cur.start)) {
+    if (
+      cur.start < pending.end ||
+      !this.isGapOverThreshold(pending.end, cur.start)
+    ) {
       if (cur.end >= pending.end) {
         pending = { start: pending.start, end: cur.end };
       }
@@ -60,41 +67,56 @@ const combineIntervals = (intervals: Interval[]): Interval[] => {
 export class VideoService implements OnDestroy {
   private videos: VideoModel[] = [];
 
-  private videosSubject: BehaviorSubject<VideoModel[]> = new BehaviorSubject(this.videos);
+  private videosSubject: BehaviorSubject<VideoModel[]> = new BehaviorSubject(
+    this.videos,
+  );
 
   private extractionQueue: VideoExtractionConfig[] = [];
 
-  statusMap: BehaviorSubject<{ [key: string]: ExtractionStatus }> = new BehaviorSubject({});
+  statusMap: BehaviorSubject<{
+    [key: string]: ExtractionStatus;
+  }> = new BehaviorSubject({});
 
   constructor(private electron: ElectronService, private router: Router) {
     // New videos are added.
-    this.electron.ipcRenderer.on('new-files', (event, filename: string, ffprobeData: ffmpeg.FfprobeData) => {
-      // todo: dedupe
-      this.videos.push(new VideoModel(filename, ffprobeData));
-      this.videosSubject.next(this.videos);
-    });
+    this.electron.ipcRenderer.on(
+      'new-files',
+      (event, filename: string, ffprobeData: ffmpeg.FfprobeData) => {
+        // todo: dedupe
+        this.videos.push(new VideoModel(filename, ffprobeData));
+        this.videosSubject.next(this.videos);
+      },
+    );
 
-    this.electron.ipcRenderer.on('progress-update', (event, status: ExtractionStatus) => {
-      const copy = { ...this.statusMap.getValue() };
-      copy[status.uri] = status;
-      this.statusMap.next(copy);
-    });
+    this.electron.ipcRenderer.on(
+      'progress-update',
+      (event, status: ExtractionStatus) => {
+        const copy = { ...this.statusMap.getValue() };
+        copy[status.uri] = status;
+        this.statusMap.next(copy);
+      },
+    );
 
-    this.electron.ipcRenderer.on('read-subtitles-response', (event, response: ReadSubtitlesResponse) => {
-      let intervals = extractSrtSubtitleIntervals(response.subtitles);
-      intervals = combineIntervals(intervals);
+    this.electron.ipcRenderer.on(
+      'read-subtitles-response',
+      (event, response: ReadSubtitlesResponse) => {
+        let intervals = extractSrtSubtitleIntervals(response.subtitles);
+        intervals = combineIntervals(intervals);
 
-      const copy = { ...this.statusMap.getValue() };
-      copy[response.path].percentage = 0;
-      copy[response.path].phase = 'PENDING';
-      this.statusMap.next(copy);
+        const copy = { ...this.statusMap.getValue() };
+        copy[response.path].percentage = 0;
+        copy[response.path].phase = 'PENDING';
+        this.statusMap.next(copy);
 
-      const config = this.extractionQueue.find((c) => c.video.ffprobeData.format.filename === response.path);
-      if (!config) {
-        throw Error('WHAT HAPPENED');
-      }
-      this.extractAudio(config);
-    });
+        const config = this.extractionQueue.find(
+          (c) => c.video.ffprobeData.format.filename === response.path,
+        );
+        if (!config) {
+          throw Error('WHAT HAPPENED');
+        }
+        this.extractAudio(config);
+      },
+    );
   }
 
   extractAudio(videoConfig: VideoExtractionConfig): void {
