@@ -1,4 +1,3 @@
-
 [![Angular Logo](https://www.vectorlogo.zone/logos/angular/angular-icon.svg)](https://angular.io/) [![Electron Logo](https://www.vectorlogo.zone/logos/electronjs/electronjs-icon.svg)](https://electronjs.org/)
 
 ![Maintained][maintained-badge]
@@ -18,22 +17,22 @@ Dialog is an app that lets you extract an audio file of condensed dialog from a 
 
 ## Key Commands
 
-|Command|Description|
-|--|--|
-|`npm run start`| Run the app, with hot reload for the Angular client. |
-|`npm run ng:serve`| Execute the app in the browser |
-|`npm run build`| Build the app. Your built files are in the /dist folder. |
-|`npm run build:prod`| Build the app with Angular aot. Your built files are in the /dist folder. |
-|`npm run electron:local`| Builds your application and start electron
-|`npm run electron:build`| Builds your application and creates an app consumable based on your operating system |
+| Command                  | Description                                                                          |
+| ------------------------ | ------------------------------------------------------------------------------------ |
+| `npm run start`          | Run the app, with hot reload for the Angular client.                                 |
+| `npm run ng:serve`       | Execute the app in the browser                                                       |
+| `npm run build`          | Build the app. Your built files are in the /dist folder.                             |
+| `npm run build:prod`     | Build the app with Angular aot. Your built files are in the /dist folder.            |
+| `npm run electron:local` | Builds your application and start electron                                           |
+| `npm run electron:build` | Builds your application and creates an app consumable based on your operating system |
 
 ## E2E Testing
 
 E2E Test scripts can be found in `e2e` folder.
 
-|Command|Description|
-|--|--|
-|`npm run e2e`| Execute end to end tests |
+| Command       | Description              |
+| ------------- | ------------------------ |
+| `npm run e2e` | Execute end to end tests |
 
 Note: To make it work behind a proxy, you can add this proxy exception in your terminal  
 `export {no_proxy,NO_PROXY}="127.0.0.1,localhost"`

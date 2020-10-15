@@ -1,6 +1,6 @@
 branches:
   only:
-  - master
+    - master
 os:
   - linux
   - osx
@@ -16,7 +16,7 @@ install:
   - npm set progress=false
   - npm install
 script:
-  - npx eslint --ext=ts ./
+  - npm run lint
   - npm run build
   - if [ "$TRAVIS_OS_NAME" != "windows" ]; then npm run test ; fi
   - if [ "$TRAVIS_OS_NAME" != "windows" ]; then npm run e2e ; fi

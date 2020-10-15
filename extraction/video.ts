@@ -2,9 +2,9 @@ import * as ffmpeg from 'fluent-ffmpeg';
 import * as fs from 'fs';
 import * as moment from 'moment';
 import * as os from 'os';
-import * as path from 'path'; // eslint-disable-line unicorn/import-style
+import * as path from 'path';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { FfpathsConfig } from './ffpaths';
+import { ExtractAudioRequest } from '../src/app/shared/ipc/messages';
 
 type Statuses =
   | 'NOT_STARTED'
@@ -35,10 +35,7 @@ export class Video {
     percentage: 0,
   });
 
-  constructor(private videoPath: string, private scratchPath: string, private ffpaths: FfpathsConfig) {
-    ffmpeg.setFfmpegPath(this.ffpaths.ffmpeg);
-    ffmpeg.setFfprobePath(this.ffpaths.ffprobe);
-  }
+  constructor(private videoPath: string) {}
 
   getProgress(): Observable<ExtractionStatus> {
     return this.extractionProgress;
@@ -53,14 +50,8 @@ export class Video {
     });
   }
 
-  async extractDialog(): Promise<void> {
+  async extractDialogNewNew(request: ExtractAudioRequest): Promise<void> {
     try {
-      this.scratchPath = fs.mkdtempSync(
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`),
-      );
-      console.log('Scratch path', this.scratchPath);
-      fs.mkdirSync(this.scratchPath, { recursive: true });
       // TODO: Is there a better way to find the "desktop" folder?
       const outputFolder = path.join(os.homedir(), 'Desktop', 'Dialog');
       if (!fs.existsSync(outputFolder)) {
@@ -69,59 +60,13 @@ export class Video {
       // TODO: This somehow throws a user-visible error but does not stop execution.
       // Figure out how to catch this and prevent moving forward.
       this.stream = fs.createWriteStream(
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        `${path.join(outputFolder, path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`,
+        `${path.join(
+          outputFolder,
+          path.basename(this.videoPath, path.extname(this.videoPath)),
+        )}.mp3`,
       );
-      await this.extractSubtitles();
-      const intervals = await this.getSubtitleIntervals();
-      const combined = this.combineIntervals(intervals);
-      await this.extractAudio(combined);
-      // Note: This doesn't throw an error when it fails (for example, with recursive: false)...
-      fs.rmdirSync(this.scratchPath, { recursive: true });
-
-      this.extractionProgress.next({
-        uri: this.videoPath,
-        phase: 'DONE',
-        percentage: 100,
-      });
-      console.log('Extraction complete.');
-    } catch (error) {
-      this.extractionProgress.next({
-        uri: this.videoPath,
-        phase: 'ERROR',
-        percentage: 100,
-        debug: error,
-      });
-      throw error;
-    }
-  }
-
-  async extractDialogNew(config: any): Promise<void> {
-    try {
-      this.scratchPath = fs.mkdtempSync(
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        path.join(os.tmpdir(), `${path.basename(this.videoPath, path.extname(this.videoPath))}-`),
-      );
-      console.log('Scratch path', this.scratchPath);
-      fs.mkdirSync(this.scratchPath, { recursive: true });
-      // TODO: Is there a better way to find the "desktop" folder?
-      const outputFolder = path.join(os.homedir(), 'Desktop', 'Dialog');
-      if (!fs.existsSync(outputFolder)) {
-        fs.mkdirSync(outputFolder);
-      }
-      // TODO: This somehow throws a user-visible error but does not stop execution.
-      // Figure out how to catch this and prevent moving forward.
-      this.stream = fs.createWriteStream(
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        `${path.join(outputFolder, path.basename(this.videoPath, path.extname(this.videoPath)))}.mp3`,
-      );
-      await this.extractSubtitles(config.subtitleStream);
-      const intervals = await this.getSubtitleIntervals();
-      let combined = this.combineIntervals(intervals);
-      combined = await this.subtractChapters(combined, config.ignoredChapters);
-      await this.extractAudio(combined, config.audioStream);
-      // Note: This doesn't throw an error when it fails (for example, with recursive: false)...
-      fs.rmdirSync(this.scratchPath, { recursive: true });
+      const combined = request.intervals;
+      await this.extractAudio(combined, request.audioTrack);
 
       this.extractionProgress.next({
         uri: this.videoPath,
@@ -137,52 +82,19 @@ export class Video {
       });
       throw error;
     }
-  }
-
-  private async subtractChapters(combined: Interval[], chapters: string[]): Promise<Interval[]> {
-    const info = await this.getInfo();
-
-    const chapterIntervals: Interval[] = [];
-    chapters.forEach((chap) =>
-      info.chapters
-        .filter((c) => c['TAG:title'] === chap)
-        .forEach((c) =>
-          chapterIntervals.push({
-            start: this.formalize(moment.duration(c.start_time, 'seconds')),
-            end: this.formalize(moment.duration(c.end_time, 'seconds')),
-          }),
-        ),
-    );
-
-    let out: Interval[] = [...combined];
-
-    // eslint-disable-next-line no-restricted-syntax
-    for (const chapter of chapterIntervals) {
-      const revision = [];
-      // eslint-disable-next-line no-restricted-syntax
-      for (const ivl of out) {
-        const cur: Interval = { start: ivl.start, end: ivl.end };
-        if (cur.start > chapter.start && cur.start < chapter.end) {
-          cur.start = chapter.end;
-        }
-        if (cur.end > chapter.start && cur.end < chapter.end) {
-          cur.end = chapter.start;
-        }
-        if (cur.start < cur.end) {
-          revision.push(cur);
-        }
-      }
-      out = revision;
-    }
-
-    return out;
   }
 
   private formalize(duration: moment.Duration): string {
-    return `${`${duration.hours()}`.padStart(2, '0')}:${`${duration.minutes()}`.padStart(
+    return `${`${duration.hours()}`.padStart(
       2,
       '0',
-    )}:${`${duration.seconds()}`.padStart(2, '0')}.${`${duration.milliseconds()}`.padStart(3, '0')}`;
+    )}:${`${duration.minutes()}`.padStart(
+      2,
+      '0',
+    )}:${`${duration.seconds()}`.padStart(
+      2,
+      '0',
+    )}.${`${duration.milliseconds()}`.padStart(3, '0')}`;
   }
 
   private async toPromise(
@@ -204,14 +116,19 @@ export class Video {
   }
 
   /** Synchronously extracts segments. */
-  private async extractAudio(intervals: Interval[], stream?: ffmpeg.FfprobeStream) {
-    const track = stream ? stream.index : 2; // TODO: get rid of 2
-
-    for (let i = 0, max = intervals.length; i < max; i++) {
+  private async extractAudio(intervals: Interval[], track: number) {
+    for (let i = 0, max = intervals.length; i < max; i += 1) {
       const interval = intervals[i];
       const command = ffmpeg(this.videoPath)
         .noVideo()
-        .outputOption('-ss', `${interval.start}`, '-to', `${interval.end}`, '-map', `0:${track}`) // , "-q:a", "0", "-map", "a")
+        .outputOption(
+          '-ss',
+          `${interval.start}`,
+          '-to',
+          `${interval.end}`,
+          '-map',
+          `0:${track}`,
+        ) // , "-q:a", "0", "-map", "a")
         .audioBitrate('128k')
         .audioCodec('libmp3lame')
         .format('mp3')
@@ -219,19 +136,26 @@ export class Video {
           this.extractionProgress.next({
             uri: this.videoPath,
             phase: 'EXTRACTING_DIALOG',
-            percentage: (((1 / intervals.length) * (+progress.percent / 100) + i) * 100) / intervals.length,
+            percentage:
+              (((1 / intervals.length) * (+progress.percent / 100) + i) * 100) /
+              intervals.length,
           });
         });
       // eslint-disable-next-line no-await-in-loop
-      await this.toPromise(command, (cmd) => cmd.pipe(this.stream, i === max - 1 ? { end: true } : { end: false }));
+      await this.toPromise(command, (cmd) =>
+        cmd.pipe(this.stream, i === max - 1 ? { end: true } : { end: false }),
+      );
     }
   }
 
-  private async extractSubtitles(stream?: ffmpeg.FfprobeStream) {
+  private async extractSubtitles(
+    outputPath: string,
+    stream?: ffmpeg.FfprobeStream,
+  ) {
     const track = stream ? stream.index : 2; // TODO: get rid of 2
     const command = ffmpeg(this.videoPath)
       .outputOption(`-map 0:${track}`)
-      .saveToFile(path.join(this.scratchPath, 'subs.srt'))
+      .saveToFile(outputPath)
       .on('progress', (progress) => {
         this.extractionProgress.next({
           uri: this.videoPath,
@@ -242,58 +166,46 @@ export class Video {
     return this.toPromise(command, (cmd) => cmd.run());
   }
 
-  private isGapOverThreshold(start: string, end: string) {
-    return moment.duration(end).subtract(moment.duration(start)).milliseconds() > 150; // todo threshold
+  async readSubtitles(stream: ffmpeg.FfprobeStream): Promise<string> {
+    const scratchPath = fs.mkdtempSync(
+      path.join(
+        os.tmpdir(),
+        `${path.basename(this.videoPath, path.extname(this.videoPath))}-`,
+      ),
+    );
+    console.log('Scratch path', scratchPath);
+    fs.mkdirSync(scratchPath, { recursive: true });
+
+    const tempFile = path.join(scratchPath, 'subs.srt');
+    const track = stream.index;
+    const command = ffmpeg(this.videoPath)
+      .outputOption(`-map 0:${track}`)
+      .saveToFile(tempFile)
+      .on('progress', (progress) => {
+        this.extractionProgress.next({
+          uri: this.videoPath,
+          phase: 'EXTRACTING_SUBTITLES',
+          percentage: progress.percent,
+        });
+      });
+    await this.toPromise(command, (c) => c.run());
+
+    const out = await this.readTextFile(tempFile);
+
+    // Note: This doesn't throw an error when it fails (for example, with recursive: false)...
+    fs.rmdirSync(scratchPath, { recursive: true });
+
+    return out;
   }
 
-  private combineIntervals(intervals: Interval[]): Interval[] {
-    // eslint-disable-next-line no-param-reassign,unicorn/no-nested-ternary
-    intervals = intervals.sort((a, b) => (a.start > b.start ? 1 : b.start > a.start ? -1 : 0));
-
-    const combined: Interval[] = [];
-    let pending = intervals[0];
-    for (const cur of intervals) {
-      if (cur.start < pending.end || !this.isGapOverThreshold(pending.end, cur.start)) {
-        if (cur.end >= pending.end) {
-          pending = { start: pending.start, end: cur.end };
-        }
-      } else {
-        if (pending.start !== pending.end) {
-          combined.push(pending);
-        }
-        pending = cur;
-      }
-    }
-    if (pending.start !== pending.end) {
-      combined.push(pending);
-    }
-
-    // let fixed = '';
-    // combined.forEach(c => {
-    //   fixed += `\n ${c.start} - ${c.end}`;
-    // });
-    // fs.writeFile(path.join(this.scratchPath, 'subs_fixed.srt'), fixed, () => { });
-    return combined;
-  }
-
-  private getSubtitleIntervals(): Promise<Interval[]> {
+  private readTextFile(filePath: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      fs.readFile(path.join(this.scratchPath, 'subs.srt'), 'utf8', (err, data) => {
+      fs.readFile(filePath, 'utf8', (err, data) => {
         if (err) {
           reject(err);
+        } else {
+          resolve(data);
         }
-        const srtTimingRegex = /^([^,]+),([^ ]+) --> ([^,]+),([^ ]+)$/;
-        const intervals = data
-          .split(/[\n\r]/)
-          .filter((s) => srtTimingRegex.test(s))
-          .map((s) => {
-            const res = srtTimingRegex.exec(s);
-            return {
-              start: `${res[1]}.${res[2]}`,
-              end: `${res[3]}.${res[4]}`,
-            };
-          });
-        resolve(intervals);
       });
     });
   }

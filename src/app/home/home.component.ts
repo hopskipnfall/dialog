@@ -65,6 +65,17 @@ export class HomeComponent implements OnInit, OnDestroy {
     return !(status.phase.endsWith('DONE') || status.phase.endsWith('ERROR'));
   }
 
+  animated(video: VideoModel): boolean {
+    const status = this.getStatus(video);
+    if (!status) return false;
+
+    return !(
+      status.phase.endsWith('DONE') ||
+      status.phase.endsWith('ERROR') ||
+      status.phase.endsWith('PENDING')
+    );
+  }
+
   getStatus(video: VideoModel): ExtractionStatus | undefined {
     return this.statuses[video.ffprobeData.format.filename];
   }

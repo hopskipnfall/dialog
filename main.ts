@@ -1,11 +1,20 @@
-import * as ffmpeg from '@ffmpeg-installer/ffmpeg';
-import * as ffprobe from '@ffprobe-installer/ffprobe';
+import * as ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
+import * as ffprobeInstaller from '@ffprobe-installer/ffprobe';
 import { app, BrowserWindow, dialog, ipcMain, screen } from 'electron';
-import * as path from 'path'; // eslint-disable-line unicorn/import-style
+import * as ffmpeg from 'fluent-ffmpeg';
+import * as path from 'path';
 import * as url from 'url';
+import { extractAudioListener, readSubtitlesListener } from './extraction/ipc';
 import { Video } from './extraction/video';
 
-let win: BrowserWindow;
+ffmpeg.setFfmpegPath(
+  ffmpegInstaller.path.replace('app.asar', 'app.asar.unpacked'),
+);
+ffmpeg.setFfprobePath(
+  ffprobeInstaller.path.replace('app.asar', 'app.asar.unpacked'),
+);
+
+let win: BrowserWindow = null;
 const args = process.argv.slice(1);
 const serve = args.some((val) => val === '--serve');
 
@@ -68,10 +77,7 @@ const selectFiles = async (event: Electron.IpcMainEvent) => {
   }
 
   for (const file of value.filePaths) {
-    const val = await new Video(file, path.join(__dirname, '.tmp/'), {
-      ffmpeg: ffmpeg.path.replace('app.asar', 'app.asar.unpacked'),
-      ffprobe: ffprobe.path.replace('app.asar', 'app.asar.unpacked'),
-    }).getInfo();
+    const val = await new Video(file).getInfo();
     const humanName = path.basename(val.format.filename);
     event.sender.send('new-files', humanName, val);
   }
@@ -79,32 +85,44 @@ const selectFiles = async (event: Electron.IpcMainEvent) => {
 
 ipcMain.on('select-files', (event) => {
   selectFiles(event).catch((error) => {
-    event.sender.send('error', `Error occurred while selecting files: ${error as string}`);
+    event.sender.send(
+      'error',
+      `Error occurred while selecting files: ${error as string}`,
+    );
   });
 });
 
-const extractDialog = async (event: Electron.IpcMainEvent, vidConfigs: any[]) => {
-  console.log('VidConfigs!', vidConfigs);
-
-  for (const vidConfig of vidConfigs) {
-    const myUri = vidConfig.video.ffprobeData.format.filename; // (vidConfig.video.ffprobeData.format as FfprobeData).format.filename;
-    console.log('Extracting for file', myUri);
-    const v = new Video(myUri, path.join(__dirname, '.tmp/'), {
-      ffmpeg: ffmpeg.path.replace('app.asar', 'app.asar.unpacked'),
-      ffprobe: ffprobe.path.replace('app.asar', 'app.asar.unpacked'),
-    });
-    const sub = v.getProgress().subscribe((status) => {
-      event.sender.send('progress-update', status);
-    });
-    await v.extractDialogNew(vidConfig);
-    sub.unsubscribe();
-  }
-};
-
-ipcMain.on('extract-dialog-new', (event, vidConfigs) => {
-  extractDialog(event, vidConfigs).catch((error) => {
-    event.sender.send('error', `Error occurred while extracting dialog: ${error as string}`);
+readSubtitlesListener(async (event, request) => {
+  console.log('Reading subtitles request', request);
+  const v = new Video(request.path);
+  const sub = v.getProgress().subscribe((status) => {
+    event.sender.send('progress-update', status);
   });
+
+  const subtitles = await v.readSubtitles(request.stream);
+
+  sub.unsubscribe();
+
+  return {
+    type: 'read-subtitles-response',
+    path: request.path,
+    subtitles,
+  };
+});
+
+extractAudioListener(async (event, request) => {
+  const v = new Video(request.videoPath);
+  const sub = v.getProgress().subscribe((status) => {
+    event.sender.send('progress-update', status);
+  });
+
+  await v.extractDialogNewNew(request);
+
+  sub.unsubscribe();
+
+  return {
+    type: 'extract-audio-response',
+  };
 });
 
 try {

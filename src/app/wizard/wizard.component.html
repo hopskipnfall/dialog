@@ -17,9 +17,23 @@
 
         <br />
 
-        <div class="btn-group btn-group-toggle" ngbRadioGroup name="radioBasic" [(ngModel)]="formVideo.audioStream">
-          <label ngbButtonLabel class="btn-primary" *ngFor="let track of getAudioTracks(formVideo.video)">
-            <input ngbButton type="radio" [value]="track" [disabled]="getAudioTracks(formVideo.video).length < 2" />
+        <div
+          class="btn-group btn-group-toggle"
+          ngbRadioGroup
+          name="radioBasic"
+          [(ngModel)]="formVideo.audioStream"
+        >
+          <label
+            ngbButtonLabel
+            class="btn-primary"
+            *ngFor="let track of getAudioTracks(formVideo.video)"
+          >
+            <input
+              ngbButton
+              type="radio"
+              [value]="track"
+              [disabled]="getAudioTracks(formVideo.video).length < 2"
+            />
             {{ getName(track) }}
           </label>
         </div>
@@ -28,9 +42,23 @@
         Subtitle tracks
         <br />
 
-        <div class="btn-group btn-group-toggle" ngbRadioGroup name="radioBasic" [(ngModel)]="formVideo.subtitleStream">
-          <label ngbButtonLabel class="btn-primary" *ngFor="let track of getSubtitleTracks(formVideo.video)">
-            <input ngbButton type="radio" [value]="track" [disabled]="getAudioTracks(formVideo.video).length < 2" />
+        <div
+          class="btn-group btn-group-toggle"
+          ngbRadioGroup
+          name="radioBasic"
+          [(ngModel)]="formVideo.subtitleStream"
+        >
+          <label
+            ngbButtonLabel
+            class="btn-primary"
+            *ngFor="let track of getSubtitleTracks(formVideo.video)"
+          >
+            <input
+              ngbButton
+              type="radio"
+              [value]="track"
+              [disabled]="getSubtitleTracks(formVideo.video).length < 2"
+            />
             {{ getName(track) }}
           </label>
         </div>
@@ -50,14 +78,18 @@
     </ngb-alert>
 
     <div *ngSwitchDefault>
-      Found the following labeled chapters in the videos you selected. Chose the chapters you want to not appear in the
-      output.
+      Found the following labeled chapters in the videos you selected. Chose the
+      chapters you want to not appear in the output.
 
       <ul class="list-group">
-        <li class="list-group-item list-group-item-action" *ngFor="let chapter of chapterSummaries">
+        <li
+          class="list-group-item list-group-item-action"
+          *ngFor="let chapter of chapterSummaries"
+        >
           <div class="chapter-container">
             <div class="chapter-content-container">
-              {{ chapter.title }} (median {{ chapter.medianStart }} - {{ chapter.medianEnd }})
+              {{ chapter.title }} (median {{ chapter.medianStart }} -
+              {{ chapter.medianEnd }})
               <br />
               Found in {{ chapter.count }} video(s).
             </div>
@@ -97,7 +129,9 @@
     <ng-template matStepLabel>Extract dialog</ng-template>
     <p>Click to start extraction.</p>
 
-    <button class="btn btn-primary" type="button" (click)="extract()">Start</button>
+    <button class="btn btn-primary" type="button" (click)="extract()">
+      Start
+    </button>
 
     <br />
 

@@ -6,7 +6,9 @@ describe('VideoService', () => {
   let service: VideoService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [{ provide: Router, useValue: {} }] });
+    TestBed.configureTestingModule({
+      providers: [{ provide: Router, useValue: {} }],
+    });
     service = TestBed.inject(VideoService);
   });
 

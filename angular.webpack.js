@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign,no-restricted-syntax,prefer-const,no-continue,dot-notation */
 /**
  * Custom angular webpack configuration
  */
@@ -12,7 +13,10 @@ module.exports = (config, options) => {
       }
 
       let fileReplacementParts = fileReplacement['with'].split('.');
-      if (fileReplacementParts.length > 1 && ['web'].indexOf(fileReplacementParts[1]) >= 0) {
+      if (
+        fileReplacementParts.length > 1 &&
+        ['web'].indexOf(fileReplacementParts[1]) >= 0
+      ) {
         config.target = 'web';
       }
       break;
