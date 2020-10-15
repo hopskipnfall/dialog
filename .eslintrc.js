@@ -50,7 +50,7 @@ module.exports = {
         endOfLine: 'auto',
       },
     ],
-    'no-unused-vars': 'warn',
+    'no-unused-vars': 'off', // Broken for type imports...
   },
   ignorePatterns: [
     'dist/**',

@@ -145,6 +145,7 @@ export class Video {
     }
   }
 
+  /** @deprecated */
   private async subtractChapters(
     combined: Interval[],
     chapters: string[],

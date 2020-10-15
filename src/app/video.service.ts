@@ -1,6 +1,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import * as ffmpeg from 'fluent-ffmpeg';
+import * as moment from 'moment';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { ElectronService } from './core/services';
 import {
@@ -34,16 +35,23 @@ const extractSrtSubtitleIntervals = (subtitles: string): Interval[] => {
   return intervals;
 };
 
+const isGapOverThreshold = (start: string, end: string) => {
+  return (
+    moment.duration(end).subtract(moment.duration(start)).milliseconds() > 150
+  ); // todo threshold
+};
+
 /** Merges overlapping intervals and sorts. */
 const combineIntervals = (intervals: Interval[]): Interval[] => {
   const sorted = sortOnField(intervals, (i) => i.start);
 
   const combined: Interval[] = [];
   let pending = sorted[0];
+  // eslint-disable-next-line no-restricted-syntax
   for (const cur of sorted) {
     if (
       cur.start < pending.end ||
-      !this.isGapOverThreshold(pending.end, cur.start)
+      !isGapOverThreshold(pending.end, cur.start)
     ) {
       if (cur.end >= pending.end) {
         pending = { start: pending.start, end: cur.end };
@@ -59,6 +67,47 @@ const combineIntervals = (intervals: Interval[]): Interval[] => {
     combined.push(pending);
   }
   return combined;
+};
+
+/** Removes skipped chapters from the list of intervals. */
+const subtractChapters = (
+  combined: Interval[],
+  config: VideoExtractionConfig,
+): Interval[] => {
+  const chapterIntervals: Interval[] = [];
+  config.ignoredChapters.forEach((chap) =>
+    config.video.ffprobeData.chapters
+      .filter((c) => c['TAG:title'] === chap)
+      .forEach((c) =>
+        chapterIntervals.push({
+          start: this.formalize(moment.duration(c.start_time, 'seconds')),
+          end: this.formalize(moment.duration(c.end_time, 'seconds')),
+        }),
+      ),
+  );
+
+  let out: Interval[] = [...combined];
+
+  // eslint-disable-next-line no-restricted-syntax
+  for (const chapter of chapterIntervals) {
+    const revision = [];
+    // eslint-disable-next-line no-restricted-syntax
+    for (const ivl of out) {
+      const cur: Interval = { start: ivl.start, end: ivl.end };
+      if (cur.start > chapter.start && cur.start < chapter.end) {
+        cur.start = chapter.end;
+      }
+      if (cur.end > chapter.start && cur.end < chapter.end) {
+        cur.end = chapter.start;
+      }
+      if (cur.start < cur.end) {
+        revision.push(cur);
+      }
+    }
+    out = revision;
+  }
+
+  return out;
 };
 
 @Injectable({
@@ -100,27 +149,28 @@ export class VideoService implements OnDestroy {
     this.electron.ipcRenderer.on(
       'read-subtitles-response',
       (event, response: ReadSubtitlesResponse) => {
-        let intervals = extractSrtSubtitleIntervals(response.subtitles);
-        intervals = combineIntervals(intervals);
-
-        const copy = { ...this.statusMap.getValue() };
-        copy[response.path].percentage = 0;
-        copy[response.path].phase = 'PENDING';
-        this.statusMap.next(copy);
-
         const config = this.extractionQueue.find(
           (c) => c.video.ffprobeData.format.filename === response.path,
         );
         if (!config) {
           throw Error('WHAT HAPPENED');
         }
+
+        let intervals = extractSrtSubtitleIntervals(response.subtitles);
+        intervals = combineIntervals(intervals);
+        intervals = subtractChapters(intervals, config);
+
+        const copy = { ...this.statusMap.getValue() };
+        copy[response.path].percentage = 0;
+        copy[response.path].phase = 'PENDING';
+        this.statusMap.next(copy);
         this.extractAudio(config);
       },
     );
   }
 
   extractAudio(videoConfig: VideoExtractionConfig): void {
-    this.electron.ipcRenderer.send('');
+    // this.electron.ipcRenderer.send('');
   }
 
   getProgressUpdates(): Observable<{ [key: string]: any }> {
