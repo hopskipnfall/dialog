@@ -15,8 +15,8 @@ ffmpeg.setFfprobePath(
 );
 
 let win: BrowserWindow = null;
-const args = process.argv.slice(1),
-  serve = args.some((val) => val === '--serve');
+const args = process.argv.slice(1);
+const serve = args.some((val) => val === '--serve');
 
 function createWindow(): BrowserWindow {
   const electronScreen = screen;
@@ -88,33 +88,6 @@ ipcMain.on('select-files', (event) => {
     event.sender.send(
       'error',
       `Error occurred while selecting files: ${error as string}`,
-    );
-  });
-});
-
-const extractDialog = async (
-  event: Electron.IpcMainEvent,
-  vidConfigs: any[],
-) => {
-  console.log('VidConfigs!', vidConfigs);
-
-  for (const vidConfig of vidConfigs) {
-    const myUri = vidConfig.video.ffprobeData.format.filename; // (vidConfig.video.ffprobeData.format as FfprobeData).format.filename;
-    console.log('Extracting for file', myUri);
-    const v = new Video(myUri);
-    const sub = v.getProgress().subscribe((status) => {
-      event.sender.send('progress-update', status);
-    });
-    await v.extractDialogNew(vidConfig);
-    sub.unsubscribe();
-  }
-};
-
-ipcMain.on('extract-dialog-new', (event, vidConfigs) => {
-  extractDialog(event, vidConfigs).catch((error) => {
-    event.sender.send(
-      'error',
-      `Error occurred while extracting dialog: ${error as string}`,
     );
   });
 });

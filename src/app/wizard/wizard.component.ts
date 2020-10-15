@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import * as ffmpeg from 'fluent-ffmpeg';
 import * as moment from 'moment';
 import { VideoModel } from '../shared/models/video-model';
+import { sortOnField } from '../shared/sort';
 import { VideoService } from '../video.service';
 
 type VideoFormSelection = {
@@ -58,10 +59,10 @@ export class WizardComponent implements OnInit {
     const startTimes = {};
     const endTimes = {};
     const counts = {};
-    for (let i = 0; i < this.formVideos.length; i++) {
+    for (let i = 0; i < this.formVideos.length; i += 1) {
       const video = this.formVideos[i];
       console.log(video.video.ffprobeData);
-      for (let j = 0; j < video.video.ffprobeData.chapters.length; j++) {
+      for (let j = 0; j < video.video.ffprobeData.chapters.length; j += 1) {
         const chapter = video.video.ffprobeData.chapters[j];
         const title = chapter['TAG:title'];
         if (title) {
@@ -70,34 +71,27 @@ export class WizardComponent implements OnInit {
           if (!counts[title]) counts[title] = 0;
           if (!startTimes[title]) startTimes[title] = [];
           if (!endTimes[title]) endTimes[title] = [];
-          counts[title]++;
+          counts[title] += 1;
           startTimes[title].push(chapter.start_time);
           endTimes[title].push(chapter.end_time);
         }
       }
     }
 
-    this.chapterSummaries = titles
-      .map((title) => {
-        const start = moment.duration(
-          this.median(startTimes[title]),
-          'seconds',
-        );
-        const end = moment.duration(this.median(endTimes[title]), 'seconds');
-        return {
-          title,
-          medianStart: this.humanize(start),
-          medianEnd: this.humanize(end),
-          count: counts[title],
-        };
-      })
-      .sort((a, b) =>
-        a.medianStart > b.medianStart
-          ? 1
-          : b.medianStart > a.medianStart
-          ? -1
-          : 0,
-      );
+    this.chapterSummaries = titles.map((title) => {
+      const start = moment.duration(this.median(startTimes[title]), 'seconds');
+      const end = moment.duration(this.median(endTimes[title]), 'seconds');
+      return {
+        title,
+        medianStart: this.humanize(start),
+        medianEnd: this.humanize(end),
+        count: counts[title],
+      };
+    });
+    this.chapterSummaries = sortOnField(
+      this.chapterSummaries,
+      (summary) => summary.medianStart,
+    );
   }
 
   extract(): void {
@@ -127,7 +121,7 @@ export class WizardComponent implements OnInit {
       throw new Error('No entries to sort!');
     }
 
-    const sorted = [...values].sort(function (a, b) {
+    const sorted = [...values].sort((a, b) => {
       return a - b;
     });
 

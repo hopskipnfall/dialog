@@ -214,10 +214,14 @@ export class VideoService implements OnDestroy {
       notExtracted.finished = true;
 
       console.log('Extracting now!', notExtracted);
+      const audioTrack = notExtracted.audioStream
+        ? notExtracted.audioStream.index
+        : 2; // TODO: get rid of 2
+
       const request: ExtractAudioRequest = {
         type: 'extract-audio-request',
         intervals: notExtracted.intervals,
-        audioTrack: notExtracted.audioStream.index,
+        audioTrack,
         videoPath: notExtracted.video.ffprobeData.format.filename,
       };
       this.electron.ipcRenderer.send('extract-audio', request);
