@@ -1,5 +1,7 @@
 import { ipcMain, IpcMainEvent } from 'electron';
 import {
+  ExtractAudioRequest,
+  ExtractAudioResponse,
   ReadSubtitlesRequest,
   ReadSubtitlesResponse,
   ServerMessage,
@@ -34,6 +36,17 @@ export const readSubtitlesListener = (
   ) => Promise<ReadSubtitlesResponse>,
 ): void => {
   ipcMain.on('read-subtitles', (event, ...args) => {
+    finalize(event, callback(event, args[0]));
+  });
+};
+
+export const extractAudioListener = (
+  callback: (
+    event: IpcMainEvent,
+    request: ExtractAudioRequest,
+  ) => Promise<ExtractAudioResponse>,
+): void => {
+  ipcMain.on('extract-audio', (event, ...args) => {
     finalize(event, callback(event, args[0]));
   });
 };

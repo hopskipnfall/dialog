@@ -20,7 +20,7 @@
             [type]="getType(video)"
             [value]="getPercentage(video)"
             [striped]="stripedProgressBar(video)"
-            [animated]="true"
+            [animated]="animated(video)"
           >
             {{ getStatus(video) ? getStatus(video).phase : '' }}
           </ngb-progressbar>

@@ -9,6 +9,7 @@ export type ServerIpcEvent =
 export type ClientIpcEvent =
   | 'read-subtitles'
   | 'select-files'
+  | 'extract-audio'
   | 'extract-dialog-new';
 
 const CLIENT_READ_SUBTITLES = 'read-subtitles';
@@ -27,9 +28,27 @@ export type ReadSubtitlesResponse = {
   subtitles: string;
 };
 
-export type ClientMessage = ReadSubtitlesRequest;
+const EXTRACT_AUDIO_REQUEST = 'extract-audio-request';
 
-export type ServerMessage = ReadSubtitlesResponse;
+export type ExtractAudioRequest = {
+  type: typeof EXTRACT_AUDIO_REQUEST;
+  interval: Interval;
+  outputPath: string;
+  closeStream: boolean;
+};
+
+const EXTRACT_AUDIO_RESPONSE = 'extract-audio-response';
+
+export type ExtractAudioResponse = {
+  type: typeof EXTRACT_AUDIO_RESPONSE;
+  interval: Interval;
+  outputPath: string;
+  closeStream: boolean;
+};
+
+export type ClientMessage = ReadSubtitlesRequest | ExtractAudioRequest;
+
+export type ServerMessage = ReadSubtitlesResponse | ExtractAudioResponse;
 
 export interface Interval {
   start: string;

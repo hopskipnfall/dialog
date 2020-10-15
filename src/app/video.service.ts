@@ -17,6 +17,8 @@ export interface VideoExtractionConfig {
   subtitleStream?: ffmpeg.FfprobeStream;
   audioStream: ffmpeg.FfprobeStream;
   ignoredChapters: string[];
+  intervals: Interval[];
+  finished: boolean;
 }
 
 /** Extracts subtitle intervals from a SRT-formatted file. */
@@ -116,6 +118,8 @@ const subtractChapters = (
 export class VideoService implements OnDestroy {
   private videos: VideoModel[] = [];
 
+  private actionInProgress = false;
+
   private videosSubject: BehaviorSubject<VideoModel[]> = new BehaviorSubject(
     this.videos,
   );
@@ -149,6 +153,8 @@ export class VideoService implements OnDestroy {
     this.electron.ipcRenderer.on(
       'read-subtitles-response',
       (event, response: ReadSubtitlesResponse) => {
+        this.actionInProgress = false;
+
         const config = this.extractionQueue.find(
           (c) => c.video.ffprobeData.format.filename === response.path,
         );
@@ -160,13 +166,43 @@ export class VideoService implements OnDestroy {
         intervals = combineIntervals(intervals);
         intervals = subtractChapters(intervals, config);
 
+        config.intervals = intervals;
+
         const copy = { ...this.statusMap.getValue() };
-        copy[response.path].percentage = 0;
+        copy[response.path].percentage = 100;
         copy[response.path].phase = 'PENDING';
         this.statusMap.next(copy);
-        this.extractAudio(config);
+
+        this.triggerNextAction();
+        // this.extractAudio(config);
       },
     );
+  }
+
+  private triggerNextAction() {
+    if (this.actionInProgress) {
+      return;
+    }
+
+    this.actionInProgress = true;
+
+    const noIntervals = this.extractionQueue.find(
+      (c) => !c.intervals || c.intervals.length === 0,
+    );
+    const notExtracted = this.extractionQueue.find((c) => !c.finished);
+    if (noIntervals) {
+      const request: ReadSubtitlesRequest = {
+        type: 'read-subtitles',
+        path: noIntervals.video.ffprobeData.format.filename,
+        stream: noIntervals.subtitleStream,
+      };
+      this.electron.ipcRenderer.send('read-subtitles', request);
+    } else if (notExtracted) {
+      // TODO: Extract.
+      console.log('Extracting now!', notExtracted);
+    } else {
+      this.actionInProgress = false;
+    }
   }
 
   extractAudio(videoConfig: VideoExtractionConfig): void {
@@ -180,14 +216,9 @@ export class VideoService implements OnDestroy {
   queueExtraction(videoConfigs: VideoExtractionConfig[]): void {
     // was this.electron.ipcRenderer.send('extract-dialog-new', videoConfigs);
     // TODO: Make this do more than just extract subtitles.
-    const request: ReadSubtitlesRequest = {
-      type: 'read-subtitles',
-      path: videoConfigs[0].video.ffprobeData.format.filename,
-      stream: videoConfigs[0].subtitleStream,
-    };
-    this.electron.ipcRenderer.send('read-subtitles', request);
     this.router.navigateByUrl('/');
-    this.extractionQueue.push(videoConfigs[0]);
+    this.extractionQueue.push(...videoConfigs);
+    this.triggerNextAction();
   }
 
   addVideos(): void {
