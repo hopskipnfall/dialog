@@ -4,7 +4,7 @@ import { app, BrowserWindow, dialog, ipcMain, screen } from 'electron';
 import * as ffmpeg from 'fluent-ffmpeg';
 import * as path from 'path';
 import * as url from 'url';
-import { readSubtitlesListener } from './extraction/ipc';
+import { extractAudioListener, readSubtitlesListener } from './extraction/ipc';
 import { Video } from './extraction/video';
 
 ffmpeg.setFfmpegPath(
@@ -134,6 +134,21 @@ readSubtitlesListener(async (event, request) => {
     type: 'read-subtitles-response',
     path: request.path,
     subtitles,
+  };
+});
+
+extractAudioListener(async (event, request) => {
+  const v = new Video(request.videoPath);
+  const sub = v.getProgress().subscribe((status) => {
+    event.sender.send('progress-update', status);
+  });
+
+  await v.extractDialogNewNew(request);
+
+  sub.unsubscribe();
+
+  return {
+    type: 'extract-audio-response',
   };
 });
 

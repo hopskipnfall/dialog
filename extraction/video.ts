@@ -4,6 +4,7 @@ import * as moment from 'moment';
 import * as os from 'os';
 import * as path from 'path'; // eslint-disable-line unicorn/import-style
 import { BehaviorSubject, Observable } from 'rxjs';
+import { ExtractAudioRequest } from '../src/app/shared/ipc/messages';
 
 type Statuses =
   | 'NOT_STARTED'
@@ -145,6 +146,40 @@ export class Video {
     }
   }
 
+  async extractDialogNewNew(request: ExtractAudioRequest): Promise<void> {
+    try {
+      // TODO: Is there a better way to find the "desktop" folder?
+      const outputFolder = path.join(os.homedir(), 'Desktop', 'Dialog');
+      if (!fs.existsSync(outputFolder)) {
+        fs.mkdirSync(outputFolder);
+      }
+      // TODO: This somehow throws a user-visible error but does not stop execution.
+      // Figure out how to catch this and prevent moving forward.
+      this.stream = fs.createWriteStream(
+        `${path.join(
+          outputFolder,
+          path.basename(this.videoPath, path.extname(this.videoPath)),
+        )}.mp3`,
+      );
+      const combined = request.intervals;
+      await this.extractAudioNew(combined, request.audioTrack);
+
+      this.extractionProgress.next({
+        uri: this.videoPath,
+        phase: 'DONE',
+        percentage: 100,
+      });
+      console.log('Extraction complete.');
+    } catch (error) {
+      this.extractionProgress.next({
+        uri: this.videoPath,
+        phase: 'ERROR',
+        percentage: 100,
+      });
+      throw error;
+    }
+  }
+
   /** @deprecated */
   private async subtractChapters(
     combined: Interval[],
@@ -226,7 +261,42 @@ export class Video {
   ) {
     const track = stream ? stream.index : 2; // TODO: get rid of 2
 
-    for (let i = 0, max = intervals.length; i < max; i++) {
+    for (let i = 0, max = intervals.length; i < max; i += 1) {
+      const interval = intervals[i];
+      const command = ffmpeg(this.videoPath)
+        .noVideo()
+        .outputOption(
+          '-ss',
+          `${interval.start}`,
+          '-to',
+          `${interval.end}`,
+          '-map',
+          `0:${track}`,
+        ) // , "-q:a", "0", "-map", "a")
+        .audioBitrate('128k')
+        .audioCodec('libmp3lame')
+        .format('mp3')
+        .on('progress', (progress) => {
+          this.extractionProgress.next({
+            uri: this.videoPath,
+            phase: 'EXTRACTING_DIALOG',
+            percentage:
+              (((1 / intervals.length) * (+progress.percent / 100) + i) * 100) /
+              intervals.length,
+          });
+        });
+      // eslint-disable-next-line no-await-in-loop
+      await this.toPromise(command, (cmd) =>
+        cmd.pipe(this.stream, i === max - 1 ? { end: true } : { end: false }),
+      );
+    }
+  }
+
+  /** Synchronously extracts segments. */
+  private async extractAudioNew(intervals: Interval[], track: number) {
+    // const track = stream ? stream.index : 2; // TODO: get rid of 2
+
+    for (let i = 0, max = intervals.length; i < max; i += 1) {
       const interval = intervals[i];
       const command = ffmpeg(this.videoPath)
         .noVideo()

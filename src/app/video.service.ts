@@ -5,6 +5,8 @@ import * as moment from 'moment';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { ElectronService } from './core/services';
 import {
+  ExtractAudioRequest,
+  ExtractAudioResponse,
   Interval,
   ReadSubtitlesRequest,
   ReadSubtitlesResponse,
@@ -177,6 +179,16 @@ export class VideoService implements OnDestroy {
         // this.extractAudio(config);
       },
     );
+
+    this.electron.ipcRenderer.on(
+      'extract-audio-response',
+      (event, response: ExtractAudioResponse) => {
+        this.actionInProgress = false;
+        console.log('ExtractAudioResponse', response);
+
+        this.triggerNextAction();
+      },
+    );
   }
 
   private triggerNextAction() {
@@ -198,15 +210,20 @@ export class VideoService implements OnDestroy {
       };
       this.electron.ipcRenderer.send('read-subtitles', request);
     } else if (notExtracted) {
-      // TODO: Extract.
+      // TODO: Put this in a better place.
+      notExtracted.finished = true;
+
       console.log('Extracting now!', notExtracted);
+      const request: ExtractAudioRequest = {
+        type: 'extract-audio-request',
+        intervals: notExtracted.intervals,
+        audioTrack: notExtracted.audioStream.index,
+        videoPath: notExtracted.video.ffprobeData.format.filename,
+      };
+      this.electron.ipcRenderer.send('extract-audio', request);
     } else {
       this.actionInProgress = false;
     }
-  }
-
-  extractAudio(videoConfig: VideoExtractionConfig): void {
-    // this.electron.ipcRenderer.send('');
   }
 
   getProgressUpdates(): Observable<{ [key: string]: any }> {
@@ -237,5 +254,6 @@ export class VideoService implements OnDestroy {
     this.electron.ipcRenderer.removeAllListeners('new-files');
     this.electron.ipcRenderer.removeAllListeners('progress-update');
     this.electron.ipcRenderer.removeAllListeners('read-subtitles-response');
+    this.electron.ipcRenderer.removeAllListeners('extract-audio-response');
   }
 }

@@ -109,6 +109,8 @@ export class WizardComponent implements OnInit {
         audioStream: formVideo.audioStream,
         subtitleStream: formVideo.subtitleStream,
         ignoredChapters: this.ignoredChapterTitles,
+        intervals: [],
+        finished: false,
       })),
     );
   }

@@ -32,18 +32,15 @@ const EXTRACT_AUDIO_REQUEST = 'extract-audio-request';
 
 export type ExtractAudioRequest = {
   type: typeof EXTRACT_AUDIO_REQUEST;
-  interval: Interval;
-  outputPath: string;
-  closeStream: boolean;
+  intervals: Interval[];
+  videoPath: string;
+  audioTrack: number;
 };
 
 const EXTRACT_AUDIO_RESPONSE = 'extract-audio-response';
 
 export type ExtractAudioResponse = {
   type: typeof EXTRACT_AUDIO_RESPONSE;
-  interval: Interval;
-  outputPath: string;
-  closeStream: boolean;
 };
 
 export type ClientMessage = ReadSubtitlesRequest | ExtractAudioRequest;
