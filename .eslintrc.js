@@ -4,6 +4,7 @@ module.exports = {
     node: true,
     es6: true,
     es2017: true,
+    jest: true,
   },
   extends: [
     'airbnb-typescript/base',
@@ -52,7 +53,10 @@ module.exports = {
     ],
     // Broken for type imports...
     'no-unused-vars': 'off',
-    'eslint@typescript-eslint/no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': 'off',
+
+    'import/no-extraneous-dependencies': 'warn',
+    '@typescript-eslint/indent': 'off',
   },
   ignorePatterns: [
     'dist/**',

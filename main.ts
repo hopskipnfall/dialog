@@ -76,7 +76,9 @@ const selectFiles = async (event: Electron.IpcMainEvent) => {
     return;
   }
 
+  // eslint-disable-next-line no-restricted-syntax
   for (const file of value.filePaths) {
+    // eslint-disable-next-line no-await-in-loop
     const val = await new Video(file).getInfo();
     const humanName = path.basename(val.format.filename);
     event.sender.send('new-files', humanName, val);

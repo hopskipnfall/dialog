@@ -92,6 +92,7 @@ export class Video {
         command
           .on('error', (err, stdout: string, stderr: string) => {
             console.error('SOMETHING WENT WRONG', err, stdout, stderr);
+            // eslint-disable-next-line prefer-promise-reject-errors
             reject({ err, stdout, stderr });
           })
           .on('end', (stdout: string, stderr: string) => {
