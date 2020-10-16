@@ -14,6 +14,8 @@ import {
 import { ExtractionStatus, VideoModel } from './shared/models/video-model';
 import { sortOnField } from './shared/sort';
 
+const GAP_THRESHOLD = moment.duration(1500);
+
 export interface VideoExtractionConfig {
   video: VideoModel;
   subtitleStream?: ffmpeg.FfprobeStream;
@@ -41,8 +43,9 @@ const extractSrtSubtitleIntervals = (subtitles: string): Interval[] => {
 
 const isGapOverThreshold = (start: string, end: string) => {
   return (
-    moment.duration(end).subtract(moment.duration(start)).milliseconds() > 150
-  ); // todo threshold
+    moment.duration(end).subtract(moment.duration(start)).milliseconds() >
+    GAP_THRESHOLD.milliseconds()
+  );
 };
 
 /** Merges overlapping intervals and sorts. */
@@ -73,6 +76,19 @@ const combineIntervals = (intervals: Interval[]): Interval[] => {
   return combined;
 };
 
+const formalize = (duration: moment.Duration): string => {
+  return `${`${duration.hours()}`.padStart(
+    2,
+    '0',
+  )}:${`${duration.minutes()}`.padStart(
+    2,
+    '0',
+  )}:${`${duration.seconds()}`.padStart(
+    2,
+    '0',
+  )}.${`${duration.milliseconds()}`.padStart(3, '0')}`;
+};
+
 /** Removes skipped chapters from the list of intervals. */
 const subtractChapters = (
   combined: Interval[],
@@ -84,8 +100,8 @@ const subtractChapters = (
       .filter((c) => c['TAG:title'] === chap)
       .forEach((c) =>
         chapterIntervals.push({
-          start: this.formalize(moment.duration(c.start_time, 'seconds')),
-          end: this.formalize(moment.duration(c.end_time, 'seconds')),
+          start: formalize(moment.duration(c.start_time, 'seconds')),
+          end: formalize(moment.duration(c.end_time, 'seconds')),
         }),
       ),
   );
@@ -237,7 +253,7 @@ export class VideoService implements OnDestroy {
   queueExtraction(videoConfigs: VideoExtractionConfig[]): void {
     // was this.electron.ipcRenderer.send('extract-dialog-new', videoConfigs);
     // TODO: Make this do more than just extract subtitles.
-    this.router.navigateByUrl('/');
+    // this.router.navigateByUrl('/'); // DUMB
     this.extractionQueue.push(...videoConfigs);
     this.triggerNextAction();
   }

@@ -1,6 +1,5 @@
 import * as ffmpeg from 'fluent-ffmpeg';
 import * as fs from 'fs';
-import * as moment from 'moment';
 import * as os from 'os';
 import * as path from 'path';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -84,19 +83,6 @@ export class Video {
     }
   }
 
-  private formalize(duration: moment.Duration): string {
-    return `${`${duration.hours()}`.padStart(
-      2,
-      '0',
-    )}:${`${duration.minutes()}`.padStart(
-      2,
-      '0',
-    )}:${`${duration.seconds()}`.padStart(
-      2,
-      '0',
-    )}.${`${duration.milliseconds()}`.padStart(3, '0')}`;
-  }
-
   private async toPromise(
     command: ffmpeg.FfmpegCommand,
     finish: (command: ffmpeg.FfmpegCommand) => void,
@@ -106,6 +92,7 @@ export class Video {
         command
           .on('error', (err, stdout: string, stderr: string) => {
             console.error('SOMETHING WENT WRONG', err, stdout, stderr);
+            // eslint-disable-next-line prefer-promise-reject-errors
             reject({ err, stdout, stderr });
           })
           .on('end', (stdout: string, stderr: string) => {

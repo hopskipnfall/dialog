@@ -7,7 +7,7 @@ import { VideoModel } from '../shared/models/video-model';
 import { sortOnField } from '../shared/sort';
 import { VideoService } from '../video.service';
 
-type VideoFormSelection = {
+export type VideoFormSelection = {
   video: VideoModel;
   subtitleStream?: ffmpeg.FfprobeStream;
   audioStream: ffmpeg.FfprobeStream;
