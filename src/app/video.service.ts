@@ -14,6 +14,8 @@ import {
 import { ExtractionStatus, VideoModel } from './shared/models/video-model';
 import { sortOnField } from './shared/sort';
 
+const GAP_THRESHOLD = moment.duration(1500);
+
 export interface VideoExtractionConfig {
   video: VideoModel;
   subtitleStream?: ffmpeg.FfprobeStream;
@@ -41,8 +43,9 @@ const extractSrtSubtitleIntervals = (subtitles: string): Interval[] => {
 
 const isGapOverThreshold = (start: string, end: string) => {
   return (
-    moment.duration(end).subtract(moment.duration(start)).milliseconds() > 150
-  ); // todo threshold
+    moment.duration(end).subtract(moment.duration(start)).milliseconds() >
+    GAP_THRESHOLD.milliseconds()
+  );
 };
 
 /** Merges overlapping intervals and sorts. */
