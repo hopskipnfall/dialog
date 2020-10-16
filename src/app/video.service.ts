@@ -76,6 +76,19 @@ const combineIntervals = (intervals: Interval[]): Interval[] => {
   return combined;
 };
 
+const formalize = (duration: moment.Duration): string => {
+  return `${`${duration.hours()}`.padStart(
+    2,
+    '0',
+  )}:${`${duration.minutes()}`.padStart(
+    2,
+    '0',
+  )}:${`${duration.seconds()}`.padStart(
+    2,
+    '0',
+  )}.${`${duration.milliseconds()}`.padStart(3, '0')}`;
+};
+
 /** Removes skipped chapters from the list of intervals. */
 const subtractChapters = (
   combined: Interval[],
@@ -87,8 +100,8 @@ const subtractChapters = (
       .filter((c) => c['TAG:title'] === chap)
       .forEach((c) =>
         chapterIntervals.push({
-          start: this.formalize(moment.duration(c.start_time, 'seconds')),
-          end: this.formalize(moment.duration(c.end_time, 'seconds')),
+          start: formalize(moment.duration(c.start_time, 'seconds')),
+          end: formalize(moment.duration(c.end_time, 'seconds')),
         }),
       ),
   );
