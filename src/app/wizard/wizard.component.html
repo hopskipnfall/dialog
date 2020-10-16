@@ -133,6 +133,12 @@
       Start
     </button>
 
+    <ul class="list-group">
+      <li class="list-group-item" *ngFor="let formVideo of formVideos">
+        <app-video-progress [formVideo]="formVideo"></app-video-progress>
+      </li>
+    </ul>
+
     <br />
 
     <div>

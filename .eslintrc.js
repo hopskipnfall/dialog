@@ -6,7 +6,7 @@ module.exports = {
     es2017: true,
   },
   extends: [
-    'airbnb-base',
+    'airbnb-typescript/base',
     'prettier', // Prettier modules must go last.
     'prettier/unicorn',
   ],
@@ -50,7 +50,9 @@ module.exports = {
         endOfLine: 'auto',
       },
     ],
-    'no-unused-vars': 'off', // Broken for type imports...
+    // Broken for type imports...
+    'no-unused-vars': 'off',
+    'eslint@typescript-eslint/no-unused-vars': 'off',
   },
   ignorePatterns: [
     'dist/**',

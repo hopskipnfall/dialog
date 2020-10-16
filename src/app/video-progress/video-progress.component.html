@@ -1,0 +1,12 @@
+{{ formVideo.video.filename }}
+
+<div *ngIf="status">
+  <ngb-progressbar
+    [type]="getType()"
+    [value]="status.percentage"
+    [striped]="stripedProgressBar()"
+    [animated]="animated()"
+  >
+    {{ status.phase }}
+  </ngb-progressbar>
+</div>

@@ -18,6 +18,7 @@ import { CoreModule } from './core/core.module';
 import { DetailModule } from './detail/detail.module';
 import { HomeModule } from './home/home.module';
 import { SharedModule } from './shared/shared.module';
+import { VideoProgressComponent } from './video-progress/video-progress.component';
 import { WizardComponent } from './wizard/wizard.component';
 
 // AoT requires an exported function for factories
@@ -26,7 +27,7 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
 }
 
 @NgModule({
-  declarations: [AppComponent, WizardComponent],
+  declarations: [AppComponent, WizardComponent, VideoProgressComponent],
   imports: [
     AppRoutingModule,
     BrowserAnimationsModule,

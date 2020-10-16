@@ -48,58 +48,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.videoService.addVideos();
   }
 
-  stringify(a: unknown): string {
-    return JSON.stringify(a);
-  }
-
-  getPercentage(video: VideoModel): number {
-    const status = this.getStatus(video);
-    if (!status) return 0;
-    return status.percentage;
-  }
-
-  stripedProgressBar(video: VideoModel): boolean {
-    const status = this.getStatus(video);
-    if (!status) return false;
-
-    return !(status.phase.endsWith('DONE') || status.phase.endsWith('ERROR'));
-  }
-
-  animated(video: VideoModel): boolean {
-    const status = this.getStatus(video);
-    if (!status) return false;
-
-    return !(
-      status.phase.endsWith('DONE') ||
-      status.phase.endsWith('ERROR') ||
-      status.phase.endsWith('PENDING')
-    );
-  }
-
   getStatus(video: VideoModel): ExtractionStatus | undefined {
     return this.statuses[video.ffprobeData.format.filename];
-  }
-
-  getType(video: VideoModel): string {
-    const status = this.getStatus(video);
-    if (!status) return 'dark';
-
-    const { phase } = status;
-    if (phase === 'NOT_STARTED') {
-      return 'dark';
-    }
-    if (phase.startsWith('EXTRACTING_SUBTITLES')) {
-      return 'info';
-    }
-    if (phase.startsWith('EXTRACTING_DIALOG')) {
-      return 'primary';
-    }
-    if (phase.startsWith('ERROR')) {
-      return 'danger';
-    }
-    if (phase === 'DONE') {
-      return 'success';
-    }
-    return 'dark';
   }
 }

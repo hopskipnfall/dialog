@@ -237,7 +237,7 @@ export class VideoService implements OnDestroy {
   queueExtraction(videoConfigs: VideoExtractionConfig[]): void {
     // was this.electron.ipcRenderer.send('extract-dialog-new', videoConfigs);
     // TODO: Make this do more than just extract subtitles.
-    this.router.navigateByUrl('/');
+    // this.router.navigateByUrl('/'); // DUMB
     this.extractionQueue.push(...videoConfigs);
     this.triggerNextAction();
   }

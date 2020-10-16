@@ -16,20 +16,9 @@
       <ng-template ngbPanelTitle>
         <span>
           {{ video.filename }}
-          <ngb-progressbar
-            [type]="getType(video)"
-            [value]="getPercentage(video)"
-            [striped]="stripedProgressBar(video)"
-            [animated]="animated(video)"
-          >
-            {{ getStatus(video) ? getStatus(video).phase : '' }}
-          </ngb-progressbar>
         </span>
       </ng-template>
-      <ng-template ngbPanelContent>
-        HELLO WORLD
-        <!-- {{ stringify(video.ffprobeData) }} -->
-      </ng-template>
+      <ng-template ngbPanelContent> HELLO WORLD </ng-template>
     </ngb-panel>
   </ngb-accordion>
 
