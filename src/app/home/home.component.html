@@ -1,27 +1,29 @@
 <div class="container">
-  <h1 class="title">
-    {{ 'PAGES.HOME.TITLE' | translate }}
-  </h1>
+  <div class="jumbotron">
+    <h3 class="display-4">{{ 'PAGES.HOME.TITLE' | translate }}</h3>
+    <p class="lead">
+      Dialog is an app that lets you extract an audio file of condensed dialog
+      from a video file. Choose some videos to get started.
+    </p>
+    <button class="btn btn-primary" type="button" (click)="doThing()">
+      Add Videos
+    </button>
+  </div>
 
-  <button class="btn btn-primary" type="button" (click)="doThing()">
-    Add Videos
+  <ul class="list-group">
+    <li class="list-group-item" *ngFor="let video of videos">
+      {{ video.filename }}
+    </li>
+  </ul>
+
+  <br />
+
+  <button
+    class="btn btn-success"
+    type="button"
+    [hidden]="videos.length == 0"
+    routerLink="/wizard"
+  >
+    Extract Dialog
   </button>
-  <br />
-
-  <ngb-accordion [closeOthers]="true" activeIds="static-1" style="width: 100%">
-    <ngb-panel
-      id="{{ video.ffprobeData.format.filename }}"
-      *ngFor="let video of videos"
-    >
-      <ng-template ngbPanelTitle>
-        <span>
-          {{ video.filename }}
-        </span>
-      </ng-template>
-      <ng-template ngbPanelContent> HELLO WORLD </ng-template>
-    </ngb-panel>
-  </ngb-accordion>
-
-  <br />
-  <a routerLink="/wizard">Extract Dialog</a>
 </div>
