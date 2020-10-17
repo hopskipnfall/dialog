@@ -43,9 +43,26 @@ export type ExtractAudioResponse = {
   type: typeof EXTRACT_AUDIO_RESPONSE;
 };
 
-export type ClientMessage = ReadSubtitlesRequest | ExtractAudioRequest;
+const OPEN_DEBUG_CONSOLE_REQUEST = 'extract-audio-request';
 
-export type ServerMessage = ReadSubtitlesResponse | ExtractAudioResponse;
+export type OpenDebugConsoleRequest = {
+  type: typeof OPEN_DEBUG_CONSOLE_REQUEST;
+};
+
+const OPEN_DEBUG_CONSOLE_RESPONSE = 'extract-audio-response';
+
+export type OpenDebugConsoleResponse = {
+  type: typeof EXTRACT_AUDIO_RESPONSE;
+};
+export type ClientMessage =
+  | ReadSubtitlesRequest
+  | ExtractAudioRequest
+  | OpenDebugConsoleRequest;
+
+export type ServerMessage =
+  | ReadSubtitlesResponse
+  | ExtractAudioResponse
+  | OpenDebugConsoleResponse;
 
 export interface Interval {
   start: string;

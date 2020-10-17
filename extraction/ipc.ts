@@ -2,6 +2,8 @@ import { ipcMain, IpcMainEvent } from 'electron';
 import {
   ExtractAudioRequest,
   ExtractAudioResponse,
+  OpenDebugConsoleRequest,
+  OpenDebugConsoleResponse,
   ReadSubtitlesRequest,
   ReadSubtitlesResponse,
   ServerMessage,
@@ -47,6 +49,17 @@ export const extractAudioListener = (
   ) => Promise<ExtractAudioResponse>,
 ): void => {
   ipcMain.on('extract-audio', (event, ...args) => {
+    finalize(event, callback(event, args[0]));
+  });
+};
+
+export const openDebugConsoleListener = (
+  callback: (
+    event: IpcMainEvent,
+    request: OpenDebugConsoleRequest,
+  ) => Promise<OpenDebugConsoleResponse>,
+): void => {
+  ipcMain.on('open-debug-console', (event, ...args) => {
     finalize(event, callback(event, args[0]));
   });
 };

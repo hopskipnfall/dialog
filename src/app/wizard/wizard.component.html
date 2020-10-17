@@ -74,8 +74,10 @@
     </ngb-alert>
 
     <div *ngSwitchDefault>
-      Found the following labeled chapters in the videos you selected. Chose the
-      chapters you want to not appear in the output.
+      <p>
+        Found the following labeled chapters in the videos you selected. Choose
+        any chapters that you want to ignore.
+      </p>
 
       <ul class="list-group">
         <li
@@ -116,29 +118,33 @@
     </div>
 
     <div>
-      <button matStepperPrevious class="btn btn-primary">Back</button>
-      <br />
-      <p>Click to start extraction.</p>
-
-      <button
-        matStepperNext
-        class="btn btn-primary"
-        type="button"
-        (click)="extract()"
-      >
-        Start
-      </button>
-      <!-- <button matStepperNext class="btn btn-primary">Next</button> -->
+      <button matStepperNext class="btn btn-primary">Next</button>
     </div>
   </mat-step>
 
   <mat-step [editable]="editable">
     <ng-template matStepLabel>Extract dialog</ng-template>
 
+    <div>
+      <button class="btn btn-primary" type="button" (click)="extract()">
+        Start Extraction
+      </button>
+    </div>
+
+    <br />
+
     <ul class="list-group">
       <li class="list-group-item" *ngFor="let formVideo of formVideos">
         <app-video-progress [formVideo]="formVideo"></app-video-progress>
       </li>
     </ul>
+    <br />
+    <ngb-alert type="primary" [dismissible]="false">
+      You can find your MP3 files in the "Dialog" folder on your desktop.
+    </ngb-alert>
+    <ngb-alert type="secondary" [dismissible]="false">
+      Developer's Note: For now you will see MP3 files in the folder while they
+      are being created. Wait until the app says it's done before opening.
+    </ngb-alert>
   </mat-step>
 </mat-vertical-stepper>

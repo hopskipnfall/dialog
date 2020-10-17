@@ -17,6 +17,8 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   statuses: { [key: string]: ExtractionStatus } = {};
 
+  devConsoleOpen = false;
+
   constructor(
     private router: Router,
     private videoService: VideoService,
@@ -50,5 +52,10 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   getStatus(video: VideoModel): ExtractionStatus | undefined {
     return this.statuses[video.ffprobeData.format.filename];
+  }
+
+  showDevConsole(): void {
+    this.electron.ipcRenderer.send('open-debug-console');
+    this.devConsoleOpen = true;
   }
 }

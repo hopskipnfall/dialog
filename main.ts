@@ -4,7 +4,11 @@ import { app, BrowserWindow, dialog, ipcMain, screen } from 'electron';
 import * as ffmpeg from 'fluent-ffmpeg';
 import * as path from 'path';
 import * as url from 'url';
-import { extractAudioListener, readSubtitlesListener } from './extraction/ipc';
+import {
+  extractAudioListener,
+  openDebugConsoleListener,
+  readSubtitlesListener,
+} from './extraction/ipc';
 import { Video } from './extraction/video';
 
 ffmpeg.setFfmpegPath(
@@ -36,7 +40,7 @@ function createWindow(): BrowserWindow {
     },
   });
   if (serve) {
-    win.webContents.openDevTools();
+    // win.webContents.openDevTools();
     // eslint-disable-next-line global-require
     require('electron-reload')(__dirname, {
       // eslint-disable-next-line global-require,import/no-dynamic-require
@@ -94,6 +98,11 @@ ipcMain.on('select-files', (event) => {
   });
 });
 
+openDebugConsoleListener(async (event, request) => {
+  win.webContents.openDevTools();
+  return { type: 'extract-audio-response' };
+});
+
 readSubtitlesListener(async (event, request) => {
   console.log('Reading subtitles request', request);
   const v = new Video(request.path);
@@ -138,9 +147,9 @@ try {
   app.on('window-all-closed', () => {
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
-    if (process.platform !== 'darwin') {
-      app.quit();
-    }
+    // if (process.platform !== 'darwin') {
+    app.quit();
+    // }
   });
 
   app.on('activate', () => {
