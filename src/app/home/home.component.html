@@ -10,6 +10,15 @@
     <button class="btn btn-primary" type="button" (click)="doThing()">
       Add Videos
     </button>
+    &nbsp;
+    <button
+      class="btn btn-info"
+      type="button"
+      (click)="showDevConsole()"
+      [hidden]="devConsoleOpen"
+    >
+      Open Developer Console
+    </button>
   </div>
 
   <ul class="list-group">
