@@ -1,4 +1,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+import { TranslateModule } from '@ngx-translate/core';
+import { VideoService } from '../video.service';
 import { VideoProgressComponent } from './video-progress.component';
 
 describe('VideoProgressComponent', () => {
@@ -8,6 +11,8 @@ describe('VideoProgressComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [VideoProgressComponent],
+      providers: [VideoService],
+      imports: [TranslateModule.forRoot(), RouterTestingModule],
     }).compileComponents();
   }));
 
