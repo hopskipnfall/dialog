@@ -1,7 +1,8 @@
 {
-  "productName": "angular-electron",
+  "productName": "Dialog",
+  "appId": "com.hopskipnfall.dialog",
   "directories": {
-    "output": "release/"
+    "output": "release-builds/"
   },
   "files": [
     "**/*",
@@ -17,7 +18,9 @@
     "!_config.yml",
     "!karma.conf.js",
     "!tsconfig.json",
-    "!tslint.json"
+    "!tslint.json",
+    "!tmp/",
+    "!out/"
   ],
   "win": {
     "icon": "dist/assets/icons",
@@ -30,5 +33,8 @@
   "linux": {
     "icon": "dist/assets/icons",
     "target": ["AppImage"]
+  },
+  "asar": {
+    "smartUnpack": true
   }
 }

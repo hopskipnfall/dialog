@@ -35,9 +35,9 @@
     "version": "conventional-changelog -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md",
     "lint": "npx eslint ./",
     "format": "npx prettier --write .",
-    "package": "npm run build:prod && electron-packager . \"Dialog\" --asar.unpackDir='{node_modules/@ffprobe-installer,node_modules/@ffmpeg-installer}' --overwrite --out=release-builds --ignore=\"^/(src|e2e|tmp|.tmp|out)\"",
-    "package-all-mac": "npm run build:prod && electron-packager . \"Dialog\" --all --asar.unpackDir='{node_modules/@ffprobe-installer,node_modules/@ffmpeg-installer}' --overwrite --out=release-builds --ignore=\"^/(src|e2e|tmp|.tmp|out)\"",
-    "package-all-win": "npm run build:prod && electron-packager . \"Dialog\" --overwrite --all --asar.unpackDir='{node_modules/@ffprobe-installer,node_modules/@ffmpeg-installer}' --icon=assets/icons/win/icon.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Dialog\" --ignore=\"^/(src|e2e|tmp|.tmp|out)\""
+    "package-mac": "npm run build:prod && electron-packager --mac",
+    "package-win": "npm run build:prod && electron-packager --win",
+    "package-linux": "npm run build:prod && electron-packager build"
   },
   "devDependencies": {
     "@angular-builders/custom-webpack": "9.2.0",

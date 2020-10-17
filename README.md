@@ -50,3 +50,15 @@ Note: To make it work behind a proxy, you can add this proxy exception in your t
 [twitter]: https://twitter.com/intent/tweet?text=Check%20out%20angular-electron!%20https://github.com/hopskipnfall/dialog%20%F0%9F%91%8D
 [twitter-badge]: https://img.shields.io/twitter/url/https/github.com/hopskipnfall/dialog.svg?style=social
 [maintained-badge]: https://img.shields.io/badge/maintained-yes-brightgreen
+
+## Packaging
+
+For Mac:
+
+`npm run package-mac`
+
+For Windows/Linux on Mac:
+
+1. Install Docker
+1. Run `docker run --rm -ti --env-file <(env | grep -iE 'DEBUG|NODE_|ELECTRON_|YARN_|NPM_|CI|CIRCLE|TRAVIS_TAG|TRAVIS|TRAVIS_REPO_|TRAVIS_BUILD_|TRAVIS_BRANCH|TRAVIS_PULL_REQUEST_|APPVEYOR_|CSC_|GH_|GITHUB_|BT_|AWS_|STRIP|BUILD_') --env ELECTRON_CACHE="/root/.cache/electron" --env ELECTRON_BUILDER_CACHE="/root/.cache/electron-builder" -v ${PWD}:/project -v ${PWD##*/}-node-modules:/project/node_modules -v ~/.cache/electron:/root/.cache/electron -v ~/.cache/electron-builder:/root/.cache/electron-builder electronuserland/builder:wine` (taken from [here](https://github.com/electron-userland/electron-builder/issues/4305#issuecomment-541099759))
+1. Run `npm run package-linux; npm run package-win`.
