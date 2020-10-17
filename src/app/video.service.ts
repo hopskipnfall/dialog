@@ -43,8 +43,8 @@ const extractSrtSubtitleIntervals = (subtitles: string): Interval[] => {
 
 const isGapOverThreshold = (start: string, end: string) => {
   return (
-    moment.duration(end).subtract(moment.duration(start)).milliseconds() >
-    GAP_THRESHOLD.milliseconds()
+    moment.duration(end).subtract(moment.duration(start)).asMilliseconds() >
+    GAP_THRESHOLD.asMilliseconds()
   );
 };
 

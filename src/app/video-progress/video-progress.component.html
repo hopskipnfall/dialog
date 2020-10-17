@@ -1,4 +1,4 @@
-{{ formVideo.video.filename }}
+{{ formVideo ? formVideo.video.filename : '' }}
 
 <div *ngIf="status">
   <ngb-progressbar

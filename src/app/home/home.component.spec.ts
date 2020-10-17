@@ -1,6 +1,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateModule } from '@ngx-translate/core';
+import { VideoService } from '../video.service';
 import { HomeComponent } from './home.component';
 
 describe('HomeComponent', () => {
@@ -10,6 +11,7 @@ describe('HomeComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [HomeComponent],
+      providers: [VideoService],
       imports: [TranslateModule.forRoot(), RouterTestingModule],
     }).compileComponents();
   }));
@@ -26,7 +28,7 @@ describe('HomeComponent', () => {
 
   it('should render title in a h1 tag', async(() => {
     const compiled = fixture.debugElement.nativeElement;
-    expect(compiled.querySelector('h1').textContent).toContain(
+    expect(compiled.querySelector('#page-title').textContent).toContain(
       'PAGES.HOME.TITLE',
     );
   }));

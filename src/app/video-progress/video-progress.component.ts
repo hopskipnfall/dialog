@@ -25,6 +25,7 @@ export class VideoProgressComponent implements OnInit {
     this.subs.push(
       this.videoService.getProgressUpdates().subscribe((statuses) => {
         // this.statuses = statuses;
+        if (!this.formVideo) return; // TODO: Figure out how to set this in the test.
         const s = statuses[this.formVideo.video.ffprobeData.format.filename];
         if (s) {
           this.status = s;
