@@ -35,9 +35,9 @@
     "version": "conventional-changelog -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md",
     "lint": "npx eslint ./",
     "format": "npx prettier --write .",
-    "package-mac": "npm run build:prod && electron-packager --mac",
-    "package-win": "npm run build:prod && electron-packager --win",
-    "package-linux": "npm run build:prod && electron-packager build"
+    "package-mac": "npm run build:prod && electron-builder --mac",
+    "package-win": "npm run build:prod && electron-builder --win",
+    "package-linux": "npm run build:prod && electron-builder --linux"
   },
   "devDependencies": {
     "@angular-builders/custom-webpack": "9.2.0",
