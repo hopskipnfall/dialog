@@ -1,5 +1,6 @@
 import * as ffmpeg from 'fluent-ffmpeg';
 import * as fs from 'fs';
+import * as moment from 'moment';
 import * as os from 'os';
 import * as path from 'path';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -106,17 +107,14 @@ export class Video {
   private async extractAudio(intervals: Interval[], track: number) {
     for (let i = 0, max = intervals.length; i < max; i += 1) {
       const interval = intervals[i];
+      const duration = moment
+        .duration(interval.end)
+        .subtract(moment.duration(interval.start));
       const command = ffmpeg(this.videoPath)
         .noVideo()
-        .outputOption(
-          '-ss',
-          `${interval.start}`,
-          '-to',
-          `${interval.end}`,
-          '-map',
-          `0:${track}`,
-        ) // , "-q:a", "0", "-map", "a")
-        .audioBitrate('128k')
+        .setStartTime(interval.start)
+        .setDuration(duration.asSeconds())
+        .outputOption('-map', `0:${track}`)
         .audioCodec('libmp3lame')
         .format('mp3')
         .on('progress', (progress) => {
@@ -133,24 +131,6 @@ export class Video {
         cmd.pipe(this.stream, i === max - 1 ? { end: true } : { end: false }),
       );
     }
-  }
-
-  private async extractSubtitles(
-    outputPath: string,
-    stream?: ffmpeg.FfprobeStream,
-  ) {
-    const track = stream ? stream.index : 2; // TODO: get rid of 2
-    const command = ffmpeg(this.videoPath)
-      .outputOption(`-map 0:${track}`)
-      .saveToFile(outputPath)
-      .on('progress', (progress) => {
-        this.extractionProgress.next({
-          uri: this.videoPath,
-          phase: 'EXTRACTING_SUBTITLES',
-          percentage: progress.percent,
-        });
-      });
-    return this.toPromise(command, (cmd) => cmd.run());
   }
 
   async readSubtitles(stream: ffmpeg.FfprobeStream): Promise<string> {
