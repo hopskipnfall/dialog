@@ -72,7 +72,6 @@
     "cross-env": "7.0.2",
     "electron": "~9.3.0",
     "electron-builder": "22.8.0",
-    "electron-packager": "15.1.0",
     "electron-reload": "1.5.0",
     "eslint": "7.2.0",
     "eslint-config-airbnb": "18.2.0",
@@ -115,8 +114,6 @@
     "@ffprobe-installer/ffprobe": "1.1.0",
     "@ng-bootstrap/ng-bootstrap": "7.0.0",
     "bootstrap": "^4.5.0",
-    "eslint-plugin-react": "7.21.2",
-    "eslint-plugin-react-hooks": "2.5.1",
     "fluent-ffmpeg": "2.1.2",
     "moment": "2.27.0",
     "rxjs": "6.6.2"
