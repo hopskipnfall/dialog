@@ -7,11 +7,20 @@ import { VideoModel } from '../shared/models/video-model';
 import { sortOnField } from '../shared/sort';
 import { VideoService } from '../video.service';
 
+const reverseString = (s: string): string => {
+  return s.split('').reverse().join('');
+};
+
 export type VideoFormSelection = {
   video: VideoModel;
   subtitleStream?: ffmpeg.FfprobeStream;
   audioStream: ffmpeg.FfprobeStream;
   ignoreIntervals: { start: number; end: number }[];
+  outputOptions: {
+    trackNumber: number;
+    trackName: string;
+    albumName: string;
+  };
 };
 
 type ChapterSummary = {
@@ -21,6 +30,39 @@ type ChapterSummary = {
   count: number;
 };
 
+function findCommonPrefix(a: string, b: string) {
+  let common = '';
+  for (let i = 0; i < Math.min(a.length, b.length); i += 1) {
+    if (a[i] === b[i]) {
+      common += a[i];
+    } else {
+      break;
+    }
+  }
+  return common;
+}
+
+const guessTrackNumber = (
+  filename: string,
+  prefix: string,
+  suffix: string,
+): number => {
+  console.log('guessing track number for ', filename, prefix, suffix);
+  let stripped = filename.substring(prefix.length);
+  stripped = stripped.substring(0, stripped.length - suffix.length);
+  const num = stripped.match(/(\d+)/)[0];
+  console.log('num', num);
+  if (num && !Number.isNaN(Number(num))) {
+    return Number(num);
+  }
+  return 0;
+};
+
+type TrackNamingScheme = {
+  id: 'album_track' | 'original' | 'custom' | 'strip_common';
+  displayName: string;
+};
+
 @Component({
   selector: 'app-wizard',
   templateUrl: './wizard.component.html',
@@ -28,6 +70,31 @@ type ChapterSummary = {
 })
 export class WizardComponent implements OnInit {
   formVideos: VideoFormSelection[] = [];
+
+  trackOptions: TrackNamingScheme[] = [
+    {
+      id: 'strip_common',
+      displayName: 'Remove prefix/suffix',
+    },
+    {
+      id: 'album_track',
+      displayName: 'Album - Track No.',
+    },
+    {
+      id: 'original',
+      displayName: 'Filename',
+    },
+    {
+      id: 'custom',
+      displayName: 'Custom',
+    },
+  ];
+
+  trackNameAlg: TrackNamingScheme = this.trackOptions.find(
+    (option) => option.id === 'original',
+  );
+
+  albumName = '';
 
   chapterSummaries: ChapterSummary[] = [];
 
@@ -41,6 +108,12 @@ export class WizardComponent implements OnInit {
 
   // Whether user can go back and make changes in the stepper.
   editable = true;
+
+  /** Prefix shared between all video titles. */
+  commonPrefix = '';
+
+  /** Suffix shared between all video titles. */
+  commonSuffix = '';
 
   constructor(private videoService: VideoService, private router: Router) {}
 
@@ -78,6 +151,24 @@ export class WizardComponent implements OnInit {
       }
     }
 
+    const videoTitles = this.formVideos.map((video) => video.video.filename);
+    if (videoTitles.length > 1) {
+      this.commonPrefix = videoTitles.reduce(findCommonPrefix);
+      this.commonSuffix = reverseString(
+        videoTitles
+          .map((title) => reverseString(title))
+          .reduce(findCommonPrefix),
+      );
+    }
+    for (let i = 0; i < this.formVideos.length; i += 1) {
+      const video = this.formVideos[i];
+      video.outputOptions.trackNumber = guessTrackNumber(
+        video.video.filename,
+        this.commonPrefix,
+        this.commonSuffix,
+      );
+    }
+
     this.chapterSummaries = titles.map((title) => {
       const start = moment.duration(this.median(startTimes[title]), 'seconds');
       const end = moment.duration(this.median(endTimes[title]), 'seconds');
@@ -94,8 +185,45 @@ export class WizardComponent implements OnInit {
     );
   }
 
+  updateTrackTitle(video: VideoFormSelection): void {
+    let title = '';
+
+    switch (this.trackNameAlg.id) {
+      case 'album_track':
+        title = `${this.albumName} - ${video.outputOptions.trackNumber}`;
+        break;
+      case 'original':
+        title = video.video.filename;
+        break;
+      case 'strip_common':
+        title = video.video.filename.substring(this.commonPrefix.length);
+        title = title.substring(0, title.length - this.commonSuffix.length);
+        break;
+      case 'custom':
+      default:
+        title = '';
+    }
+
+    if (title) {
+      video.outputOptions.trackName = title;
+    }
+  }
+
+  updateTrackTitles(): void {
+    if (this.trackNameAlg.id === 'custom') return;
+
+    this.formVideos.forEach((v) => {
+      this.updateTrackTitle(v);
+    });
+  }
+
   extract(): void {
     this.editable = false;
+
+    // Update album name.
+    this.formVideos.forEach((v) => {
+      v.outputOptions.albumName = this.albumName;
+    });
 
     this.videoService.queueExtraction(
       this.formVideos.map((formVideo) => ({
@@ -105,6 +233,9 @@ export class WizardComponent implements OnInit {
         ignoredChapters: this.ignoredChapterTitles,
         intervals: [],
         finished: false,
+        outputOptions: {
+          ...formVideo.outputOptions,
+        },
       })),
     );
   }
@@ -114,6 +245,12 @@ export class WizardComponent implements OnInit {
       2,
       '0',
     )}:${`${duration.seconds()}`.padStart(2, '0')}`;
+  }
+
+  setAllAlbumTitles(albumName: string) {
+    this.formVideos.forEach((formVideo) => {
+      formVideo.outputOptions.albumName = albumName;
+    });
   }
 
   private median(values: number[]): number {
@@ -139,6 +276,11 @@ export class WizardComponent implements OnInit {
       subtitleStream: this.getSubtitleTracks(video)[0],
       audioStream: this.getAudioTracks(video)[0],
       ignoreIntervals: [],
+      outputOptions: {
+        trackNumber: 0,
+        trackName: video.filename,
+        albumName: '',
+      },
     };
   }
 

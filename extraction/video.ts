@@ -66,7 +66,7 @@ export class Video {
         )}.mp3`,
       );
       const combined = request.intervals;
-      await this.extractAudio(combined, request.audioTrack);
+      await this.extractAudio(combined, request);
 
       this.extractionProgress.next({
         uri: this.videoPath,
@@ -104,7 +104,30 @@ export class Video {
   }
 
   /** Synchronously extracts segments. */
-  private async extractAudio(intervals: Interval[], track: number) {
+  private async extractAudio(
+    intervals: Interval[],
+    track: ExtractAudioRequest,
+  ) {
+    console.error('ExtractAudioRequest', track);
+    const metadataParameters = [];
+    if (track.outputOptions.albumName) {
+      metadataParameters.push(
+        '-metadata',
+        `album=${track.outputOptions.albumName.replace(' ', '')}`,
+      );
+    }
+    if (track.outputOptions.trackName) {
+      metadataParameters.push(
+        '-metadata',
+        `title=${track.outputOptions.trackName}`,
+      );
+    }
+    if (track.outputOptions.trackNumber) {
+      metadataParameters.push(
+        '-metadata',
+        `track=${track.outputOptions.trackNumber}`,
+      );
+    }
     for (let i = 0, max = intervals.length; i < max; i += 1) {
       const interval = intervals[i];
       const duration = moment
@@ -114,7 +137,11 @@ export class Video {
         .noVideo()
         .setStartTime(interval.start)
         .setDuration(duration.asSeconds())
-        .outputOption('-map', `0:${track}`)
+        .outputOption([
+          '-map',
+          `0:${track.audioSourceTrack}`,
+          ...metadataParameters,
+        ])
         .audioCodec('libmp3lame')
         .format('mp3')
         .on('progress', (progress) => {

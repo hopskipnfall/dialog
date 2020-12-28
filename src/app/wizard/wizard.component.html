@@ -2,12 +2,81 @@
 
 <mat-vertical-stepper [linear]="true" #stepper>
   <mat-step [editable]="editable">
-    <ng-template matStepLabel>Choose audio/subtitle tracks</ng-template>
+    <ng-template matStepLabel>Configure videos</ng-template>
+
+    <p class="lead">Output metadata</p>
+
+    <div class="input-group mb-3">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="inputGroup-sizing-default">
+          Album Name
+        </span>
+      </div>
+      <input
+        type="text"
+        class="form-control"
+        aria-label="Sizing example input"
+        aria-describedby="inputGroup-sizing-default"
+        [(ngModel)]="albumName"
+      />
+    </div>
+
+    <div class="input-group mb-3">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="inputGroup-sizing-default">
+          Track Title
+        </span>
+      </div>
+      <div ngbDropdown class="d-inline-block">
+        <button class="btn btn-primary" id="dropdownBasic1" ngbDropdownToggle>
+          {{ trackNameAlg.displayName }}
+        </button>
+        <div ngbDropdownMenu aria-labelledby="dropdownBasic1">
+          <button
+            *ngFor="let option of trackOptions"
+            ngbDropdownItem
+            (click)="trackNameAlg = option; updateTrackTitles()"
+          >
+            {{ option.displayName }}
+          </button>
+        </div>
+      </div>
+    </div>
 
     <ul class="list-group">
       <li class="list-group-item" *ngFor="let formVideo of formVideos">
-        {{ formVideo.video.filename }}
-        <br />
+        <p class="lead">{{ formVideo.video.filename }}</p>
+
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="inputGroup-sizing-default">
+              Track #
+            </span>
+          </div>
+          <input
+            type="number"
+            class="form-control"
+            aria-label="Sizing example input"
+            aria-describedby="inputGroup-sizing-default"
+            [(ngModel)]="formVideo.outputOptions.trackNumber"
+          />
+        </div>
+
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="inputGroup-sizing-default">
+              Track Name
+            </span>
+          </div>
+          <input
+            type="text"
+            class="form-control"
+            aria-label="Sizing example input"
+            aria-describedby="inputGroup-sizing-default"
+            [disabled]="trackNameAlg.id != 'custom'"
+            [(ngModel)]="formVideo.outputOptions.trackName"
+          />
+        </div>
 
         Audio tracks
 
@@ -106,8 +175,9 @@
                     aria-label="Example home icon"
                     inline="true"
                     *ngIf="isIgnoredChapter(chapter)"
-                    >check_circle</mat-icon
                   >
+                    check_circle
+                  </mat-icon>
                 </label>
               </div>
             </div>

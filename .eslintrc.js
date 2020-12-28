@@ -57,6 +57,8 @@ module.exports = {
 
     'import/no-extraneous-dependencies': 'warn',
     '@typescript-eslint/indent': 'off',
+    'prefer-destructuring': ['error', { object: true, array: false }],
+    'no-param-reassign': 'off',
   },
   ignorePatterns: [
     'dist/**',
