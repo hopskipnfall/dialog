@@ -91,7 +91,7 @@ export class Video {
     return new Promise((resolve, reject) => {
       finish(
         command
-          .on('start', (cmd) => console.error(`Executing FFMPEG command:`, cmd))
+          .on('start', (cmd) => console.error('Executing FFMPEG command:', cmd))
           .on('error', (err, stdout: string, stderr: string) => {
             console.error('SOMETHING WENT WRONG', err, stdout, stderr);
             // eslint-disable-next-line prefer-promise-reject-errors
