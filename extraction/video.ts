@@ -66,7 +66,7 @@ export class Video {
         )}.mp3`,
       );
       const combined = request.intervals;
-      await this.extractAudio(combined, request.audioTrack);
+      await this.extractAudio(combined, request);
 
       this.extractionProgress.next({
         uri: this.videoPath,
@@ -91,6 +91,7 @@ export class Video {
     return new Promise((resolve, reject) => {
       finish(
         command
+          .on('start', (cmd) => console.error('Executing FFMPEG command:', cmd))
           .on('error', (err, stdout: string, stderr: string) => {
             console.error('SOMETHING WENT WRONG', err, stdout, stderr);
             // eslint-disable-next-line prefer-promise-reject-errors
@@ -104,7 +105,32 @@ export class Video {
   }
 
   /** Synchronously extracts segments. */
-  private async extractAudio(intervals: Interval[], track: number) {
+  private async extractAudio(
+    intervals: Interval[],
+    track: ExtractAudioRequest,
+  ) {
+    console.error('ExtractAudioRequest', track);
+    const metadataParameters = [];
+    if (track.outputOptions.albumName) {
+      metadataParameters.push(
+        '-metadata',
+        // TODO: Get rid of these apostrophes.. I think this
+        // is a FFMPEG bug. I can only repro with the album field.
+        `album='${track.outputOptions.albumName}'`,
+      );
+    }
+    if (track.outputOptions.trackName) {
+      metadataParameters.push(
+        '-metadata',
+        `title=${track.outputOptions.trackName}`,
+      );
+    }
+    if (track.outputOptions.trackNumber) {
+      metadataParameters.push(
+        '-metadata',
+        `track=${track.outputOptions.trackNumber}`,
+      );
+    }
     for (let i = 0, max = intervals.length; i < max; i += 1) {
       const interval = intervals[i];
       const duration = moment
@@ -114,7 +140,11 @@ export class Video {
         .noVideo()
         .setStartTime(interval.start)
         .setDuration(duration.asSeconds())
-        .outputOption('-map', `0:${track}`)
+        .outputOption([
+          '-map',
+          `0:${track.audioSourceTrack}`,
+          ...metadataParameters,
+        ])
         .audioCodec('libmp3lame')
         .format('mp3')
         .on('progress', (progress) => {

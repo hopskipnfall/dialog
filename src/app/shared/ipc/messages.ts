@@ -34,7 +34,14 @@ export type ExtractAudioRequest = {
   type: typeof EXTRACT_AUDIO_REQUEST;
   intervals: Interval[];
   videoPath: string;
-  audioTrack: number;
+  /** Channel number. */
+  audioSourceTrack: number;
+
+  outputOptions: {
+    trackName?: string;
+    albumName?: string;
+    trackNumber?: number;
+  };
 };
 
 const EXTRACT_AUDIO_RESPONSE = 'extract-audio-response';

@@ -23,6 +23,11 @@ export interface VideoExtractionConfig {
   ignoredChapters: string[];
   intervals: Interval[];
   finished: boolean;
+  outputOptions: {
+    trackNumber: number;
+    trackName: string;
+    albumName: string;
+  };
 }
 
 /** Extracts subtitle intervals from a SRT-formatted file. */
@@ -230,15 +235,18 @@ export class VideoService implements OnDestroy {
       notExtracted.finished = true;
 
       console.log('Extracting now!', notExtracted);
-      const audioTrack = notExtracted.audioStream
+      const audioSourceTrack = notExtracted.audioStream
         ? notExtracted.audioStream.index
         : 2; // TODO: get rid of 2
 
       const request: ExtractAudioRequest = {
         type: 'extract-audio-request',
         intervals: notExtracted.intervals,
-        audioTrack,
+        audioSourceTrack,
         videoPath: notExtracted.video.ffprobeData.format.filename,
+        outputOptions: {
+          ...notExtracted.outputOptions,
+        },
       };
       this.electron.ipcRenderer.send('extract-audio', request);
     } else {
