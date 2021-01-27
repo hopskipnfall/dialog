@@ -91,6 +91,7 @@ export class Video {
     return new Promise((resolve, reject) => {
       finish(
         command
+          .on('start', (cmd) => console.error(`Executing FFMPEG command:`, cmd))
           .on('error', (err, stdout: string, stderr: string) => {
             console.error('SOMETHING WENT WRONG', err, stdout, stderr);
             // eslint-disable-next-line prefer-promise-reject-errors
@@ -113,7 +114,9 @@ export class Video {
     if (track.outputOptions.albumName) {
       metadataParameters.push(
         '-metadata',
-        `album=${track.outputOptions.albumName.replace(' ', '')}`,
+        // TODO: Get rid of these apostrophes.. I think this
+        // is a FFMPEG bug. I can only repro with the album field.
+        `album='${track.outputOptions.albumName}'`,
       );
     }
     if (track.outputOptions.trackName) {
