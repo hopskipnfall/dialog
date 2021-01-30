@@ -107,6 +107,16 @@
         Subtitle tracks
         <br />
 
+        <button
+          class="btn btn-secondary"
+          [ngClass]="{ active: formVideo.subtitleStream === null }"
+          (click)="formVideo.subtitleStream = null"
+        >
+          None
+        </button>
+
+        &nbsp;
+
         <div
           class="btn-group btn-group-toggle"
           ngbRadioGroup
@@ -118,15 +128,18 @@
             class="btn-primary"
             *ngFor="let track of getSubtitleTracks(formVideo.video)"
           >
-            <input
-              ngbButton
-              type="radio"
-              [value]="track"
-              [disabled]="getSubtitleTracks(formVideo.video).length < 2"
-            />
+            <input ngbButton type="radio" [value]="track" />
             {{ getName(track) }}
           </label>
         </div>
+        <br /><br />
+        <ngb-alert
+          type="secondary"
+          *ngIf="formVideo.subtitleStream === null"
+          [dismissible]="false"
+        >
+          Subtitles will not be used to remove gaps in dialog.
+        </ngb-alert>
       </li>
     </ul>
 

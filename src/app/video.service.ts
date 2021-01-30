@@ -4,6 +4,7 @@ import * as ffmpeg from 'fluent-ffmpeg';
 import * as moment from 'moment';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { ElectronService } from './core/services';
+import { combineIntervals, subtractIntervals } from './shared/intervals';
 import {
   ExtractAudioRequest,
   ExtractAudioResponse,
@@ -12,7 +13,6 @@ import {
   ReadSubtitlesResponse,
 } from './shared/ipc/messages';
 import { ExtractionStatus, VideoModel } from './shared/models/video-model';
-import { sortOnField } from './shared/sort';
 
 const GAP_THRESHOLD = moment.duration(1500);
 
@@ -46,41 +46,6 @@ const extractSrtSubtitleIntervals = (subtitles: string): Interval[] => {
   return intervals;
 };
 
-const isGapOverThreshold = (start: string, end: string) => {
-  return (
-    moment.duration(end).subtract(moment.duration(start)).asMilliseconds() >
-    GAP_THRESHOLD.asMilliseconds()
-  );
-};
-
-/** Merges overlapping intervals and sorts. */
-const combineIntervals = (intervals: Interval[]): Interval[] => {
-  const sorted = sortOnField(intervals, (i) => i.start);
-
-  const combined: Interval[] = [];
-  let pending = sorted[0];
-  // eslint-disable-next-line no-restricted-syntax
-  for (const cur of sorted) {
-    if (
-      cur.start < pending.end ||
-      !isGapOverThreshold(pending.end, cur.start)
-    ) {
-      if (cur.end >= pending.end) {
-        pending = { start: pending.start, end: cur.end };
-      }
-    } else {
-      if (pending.start !== pending.end) {
-        combined.push(pending);
-      }
-      pending = cur;
-    }
-  }
-  if (pending.start !== pending.end) {
-    combined.push(pending);
-  }
-  return combined;
-};
-
 const formalize = (duration: moment.Duration): string => {
   return `${`${duration.hours()}`.padStart(
     2,
@@ -111,28 +76,7 @@ const subtractChapters = (
       ),
   );
 
-  let out: Interval[] = [...combined];
-
-  // eslint-disable-next-line no-restricted-syntax
-  for (const chapter of chapterIntervals) {
-    const revision = [];
-    // eslint-disable-next-line no-restricted-syntax
-    for (const ivl of out) {
-      const cur: Interval = { start: ivl.start, end: ivl.end };
-      if (cur.start > chapter.start && cur.start < chapter.end) {
-        cur.start = chapter.end;
-      }
-      if (cur.end > chapter.start && cur.end < chapter.end) {
-        cur.end = chapter.start;
-      }
-      if (cur.start < cur.end) {
-        revision.push(cur);
-      }
-    }
-    out = revision;
-  }
-
-  return out;
+  return subtractIntervals(combined, chapterIntervals);
 };
 
 @Injectable({
@@ -186,7 +130,7 @@ export class VideoService implements OnDestroy {
         }
 
         let intervals = extractSrtSubtitleIntervals(response.subtitles);
-        intervals = combineIntervals(intervals);
+        intervals = combineIntervals(intervals, GAP_THRESHOLD);
         intervals = subtractChapters(intervals, config);
 
         config.intervals = intervals;
@@ -218,6 +162,18 @@ export class VideoService implements OnDestroy {
     }
 
     this.actionInProgress = true;
+
+    const noSubtitles = this.extractionQueue.find(
+      (c) => (!c.intervals || c.intervals.length === 0) && !c.subtitleStream,
+    );
+    if (noSubtitles) {
+      const durationSeconds = noSubtitles.video.ffprobeData.format.duration;
+      const start = formalize(moment.duration(0, 'seconds'));
+      const end = formalize(moment.duration(durationSeconds, 'seconds'));
+      let intervals = [{ start, end }];
+      intervals = subtractChapters(intervals, noSubtitles);
+      noSubtitles.intervals = intervals;
+    }
 
     const noIntervals = this.extractionQueue.find(
       (c) => !c.intervals || c.intervals.length === 0,

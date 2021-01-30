@@ -33,7 +33,7 @@ export class Video {
     uri: this.videoPath,
     phase: 'NOT_STARTED',
     percentage: 0,
-  });
+  } as ExtractionStatus); // TODO: Find a safer way to enforce this type.
 
   constructor(private videoPath: string) {}
 
