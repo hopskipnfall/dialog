@@ -7,6 +7,7 @@ import * as url from 'url';
 import {
   extractAudioListener,
   openDebugConsoleListener,
+  pickFileListener,
   readSubtitlesListener,
 } from './extraction/ipc';
 import { Video } from './extraction/video';
@@ -110,14 +111,14 @@ readSubtitlesListener(async (event, request) => {
     event.sender.send('progress-update', status);
   });
 
-  const subtitles = await v.readSubtitles(request.stream);
-
   sub.unsubscribe();
 
   return {
     type: 'read-subtitles-response',
     path: request.path,
-    subtitles,
+    subtitles: request.stream
+      ? await v.readSubtitlesFromStream(request.stream)
+      : await v.readTextFile(request.subtitlesOverridePath),
   };
 });
 
@@ -133,6 +134,21 @@ extractAudioListener(async (event, request) => {
 
   return {
     type: 'extract-audio-response',
+  };
+});
+
+pickFileListener(async (event, request) => {
+  const value = await dialog.showOpenDialog({
+    properties: ['openFile'],
+    // filters: [{ name: 'videosOnly', extensions: ['mkv'] }],
+  });
+  return {
+    type: 'pick-file-response',
+    token: request.token,
+    path:
+      value.filePaths && value.filePaths.length > 0
+        ? value.filePaths[0]
+        : undefined,
   };
 });
 

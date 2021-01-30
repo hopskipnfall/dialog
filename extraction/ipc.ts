@@ -4,6 +4,8 @@ import {
   ExtractAudioResponse,
   OpenDebugConsoleRequest,
   OpenDebugConsoleResponse,
+  PickFileRequest,
+  PickFileResponse,
   ReadSubtitlesRequest,
   ReadSubtitlesResponse,
   ServerMessage,
@@ -60,6 +62,17 @@ export const openDebugConsoleListener = (
   ) => Promise<OpenDebugConsoleResponse>,
 ): void => {
   ipcMain.on('open-debug-console', (event, ...args) => {
+    finalize(event, callback(event, args[0]));
+  });
+};
+
+export const pickFileListener = (
+  callback: (
+    event: IpcMainEvent,
+    request: PickFileRequest,
+  ) => Promise<PickFileResponse>,
+): void => {
+  ipcMain.on('pick-file', (event, ...args) => {
     finalize(event, callback(event, args[0]));
   });
 };

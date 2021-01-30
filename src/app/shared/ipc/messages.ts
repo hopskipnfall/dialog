@@ -17,6 +17,7 @@ const CLIENT_READ_SUBTITLES = 'read-subtitles';
 export type ReadSubtitlesRequest = {
   type: typeof CLIENT_READ_SUBTITLES;
   path: string;
+  subtitlesOverridePath?: string;
   stream: ffmpeg.FfprobeStream;
 };
 
@@ -26,6 +27,21 @@ export type ReadSubtitlesResponse = {
   type: typeof READ_SUBTITLES_RESPONSE;
   path: string;
   subtitles: string;
+};
+
+const CLIENT_PICK_FILE = 'pick-file';
+
+export type PickFileRequest = {
+  type: typeof CLIENT_PICK_FILE;
+  token: string;
+};
+
+const PICK_FILE_RESPONSE = 'pick-file-response';
+
+export type PickFileResponse = {
+  type: typeof PICK_FILE_RESPONSE;
+  path?: string;
+  token: string;
 };
 
 const EXTRACT_AUDIO_REQUEST = 'extract-audio-request';
@@ -64,12 +80,14 @@ export type OpenDebugConsoleResponse = {
 export type ClientMessage =
   | ReadSubtitlesRequest
   | ExtractAudioRequest
-  | OpenDebugConsoleRequest;
+  | OpenDebugConsoleRequest
+  | PickFileRequest;
 
 export type ServerMessage =
   | ReadSubtitlesResponse
   | ExtractAudioResponse
-  | OpenDebugConsoleResponse;
+  | OpenDebugConsoleResponse
+  | PickFileResponse;
 
 export interface Interval {
   start: string;

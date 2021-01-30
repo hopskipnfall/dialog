@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
+import { ElectronService } from 'app/core/services';
+import { PickFileRequest, PickFileResponse } from 'app/shared/ipc/messages';
 import * as ffmpeg from 'fluent-ffmpeg';
 import * as moment from 'moment';
 import { VideoModel } from '../shared/models/video-model';
@@ -14,6 +16,7 @@ const reverseString = (s: string): string => {
 export type VideoFormSelection = {
   video: VideoModel;
   subtitleStream?: ffmpeg.FfprobeStream;
+  subtitlesOverridePath?: string;
   audioStream: ffmpeg.FfprobeStream;
   ignoreIntervals: { start: number; end: number }[];
   outputOptions: {
@@ -68,7 +71,7 @@ type TrackNamingScheme = {
   templateUrl: './wizard.component.html',
   styleUrls: ['./wizard.component.scss'],
 })
-export class WizardComponent implements OnInit {
+export class WizardComponent implements OnInit, OnDestroy {
   formVideos: VideoFormSelection[] = [];
 
   trackOptions: TrackNamingScheme[] = [
@@ -115,7 +118,34 @@ export class WizardComponent implements OnInit {
   /** Suffix shared between all video titles. */
   commonSuffix = '';
 
-  constructor(private videoService: VideoService, private router: Router) {}
+  constructor(
+    private videoService: VideoService,
+    private router: Router,
+    private electron: ElectronService,
+    private ref: ChangeDetectorRef,
+  ) {
+    this.electron.ipcRenderer.on(
+      'pick-file-response',
+      (event, response: PickFileResponse) => {
+        console.log('RESPRESP', response);
+        if (!response.path) {
+          console.log('Nothing to do');
+          return;
+        }
+        const video = this.formVideos.find(
+          (v) => v.video.ffprobeData.format.filename === response.token,
+        );
+        video.subtitlesOverridePath = response.path;
+        video.subtitleStream = undefined;
+        // Terrible I hate this.
+        this.ref.detectChanges();
+      },
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.electron.ipcRenderer.removeAllListeners('pick-file-response');
+  }
 
   ngOnInit(): void {
     const videos = this.videoService.getCurrentVideos();
@@ -229,7 +259,10 @@ export class WizardComponent implements OnInit {
       this.formVideos.map((formVideo) => ({
         video: formVideo.video,
         audioStream: formVideo.audioStream,
-        subtitleStream: formVideo.subtitleStream,
+        subtitles: {
+          subtitleStream: formVideo.subtitleStream,
+          subtitlesOverridePath: formVideo.subtitlesOverridePath,
+        },
         ignoredChapters: this.ignoredChapterTitles,
         intervals: [],
         finished: false,
@@ -311,11 +344,23 @@ export class WizardComponent implements OnInit {
     );
   }
 
-  getName(stream: ffmpeg.FfprobeStream): string {
+  getName(stream?: ffmpeg.FfprobeStream): string {
+    if (!stream) {
+      return 'Do not use subtitles';
+    }
     const name: string =
       stream.tags && stream.tags.language ? stream.tags.title : 'No title';
     const language: string =
       stream.tags && stream.tags.language ? stream.tags.language : 'No title';
     return `${name || 'No title'} (${language || 'No language'})`;
+  }
+
+  pickSubtitleFile(formVideo: VideoFormSelection) {
+    const request: PickFileRequest = {
+      type: 'pick-file',
+      token: formVideo.video.ffprobeData.format.filename,
+    };
+    console.log('picking file!!!');
+    this.electron.ipcRenderer.send('pick-file', request);
   }
 }

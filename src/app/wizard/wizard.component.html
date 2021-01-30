@@ -107,17 +107,46 @@
         Subtitle tracks
         <br />
 
-        <button
-          class="btn btn-secondary"
-          [ngClass]="{ active: formVideo.subtitleStream === null }"
-          (click)="formVideo.subtitleStream = null"
-        >
-          None
-        </button>
+        <div ngbDropdown class="d-inline-block">
+          <button
+            class="btn btn-outline-primary"
+            id="dropdownBasic1"
+            ngbDropdownToggle
+          >
+            {{
+              formVideo.subtitlesOverridePath
+                ? 'External subs file'
+                : getName(formVideo.subtitleStream)
+            }}
+          </button>
+          <div
+            ngbDropdownMenu
+            aria-labelledby="dropdownBasic1"
+            style="z-index: 999"
+          >
+            <button
+              ngbDropdownItem
+              (click)="
+                formVideo.subtitleStream = null;
+                formVideo.subtitlesOverridePath = undefined
+              "
+            >
+              {{ getName(track) }}
+            </button>
+            <button
+              ngbDropdownItem
+              *ngFor="let track of getSubtitleTracks(formVideo.video)"
+              (click)="formVideo.subtitleStream = track"
+            >
+              {{ getName(track) }}
+            </button>
+            <button ngbDropdownItem (click)="pickSubtitleFile(formVideo)">
+              Choose external file
+            </button>
+          </div>
+        </div>
 
-        &nbsp;
-
-        <div
+        <!-- <div
           class="btn-group btn-group-toggle"
           ngbRadioGroup
           name="radioBasic"
@@ -131,7 +160,7 @@
             <input ngbButton type="radio" [value]="track" />
             {{ getName(track) }}
           </label>
-        </div>
+        </div> -->
         <br /><br />
         <ngb-alert
           type="secondary"

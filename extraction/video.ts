@@ -163,7 +163,7 @@ export class Video {
     }
   }
 
-  async readSubtitles(stream: ffmpeg.FfprobeStream): Promise<string> {
+  async readSubtitlesFromStream(stream: ffmpeg.FfprobeStream): Promise<string> {
     const scratchPath = fs.mkdtempSync(
       path.join(
         os.tmpdir(),
@@ -195,7 +195,7 @@ export class Video {
     return out;
   }
 
-  private readTextFile(filePath: string): Promise<string> {
+  readTextFile(filePath: string): Promise<string> {
     return new Promise((resolve, reject) => {
       fs.readFile(filePath, 'utf8', (err, data) => {
         if (err) {
