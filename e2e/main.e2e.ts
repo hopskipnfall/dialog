@@ -8,6 +8,7 @@ describe('angular-electron App', function () {
   let client: SpectronClient;
 
   beforeEach(function () {
+    // eslint-disable-next-line prefer-destructuring
     client = this.app.client;
   });
 
