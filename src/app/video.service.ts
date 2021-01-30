@@ -18,7 +18,10 @@ const GAP_THRESHOLD = moment.duration(1500);
 
 export interface VideoExtractionConfig {
   video: VideoModel;
-  subtitleStream?: ffmpeg.FfprobeStream;
+  subtitles?: {
+    subtitleStream?: ffmpeg.FfprobeStream;
+    subtitlesOverridePath?: string;
+  };
   audioStream: ffmpeg.FfprobeStream;
   ignoredChapters: string[];
   intervals: Interval[];
@@ -164,7 +167,10 @@ export class VideoService implements OnDestroy {
     this.actionInProgress = true;
 
     const noSubtitles = this.extractionQueue.find(
-      (c) => (!c.intervals || c.intervals.length === 0) && !c.subtitleStream,
+      (c) =>
+        (!c.intervals || c.intervals.length === 0) &&
+        !c.subtitles.subtitleStream &&
+        !c.subtitles.subtitlesOverridePath,
     );
     if (noSubtitles) {
       const durationSeconds = noSubtitles.video.ffprobeData.format.duration;
@@ -183,7 +189,8 @@ export class VideoService implements OnDestroy {
       const request: ReadSubtitlesRequest = {
         type: 'read-subtitles',
         path: noIntervals.video.ffprobeData.format.filename,
-        stream: noIntervals.subtitleStream,
+        stream: noIntervals.subtitles.subtitleStream,
+        subtitlesOverridePath: noIntervals.subtitles.subtitlesOverridePath,
       };
       this.electron.ipcRenderer.send('read-subtitles', request);
     } else if (notExtracted) {
