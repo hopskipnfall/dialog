@@ -1,13 +1,15 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ElectronService } from 'app/core/services';
-import { PickFileRequest, PickFileResponse } from 'app/shared/ipc/messages';
 import * as ffmpeg from 'fluent-ffmpeg';
 import * as moment from 'moment';
+import { ElectronService } from '../core/services';
+import { PickFileRequest, PickFileResponse } from '../shared/ipc/messages';
 import { VideoModel } from '../shared/models/video-model';
 import { sortOnField } from '../shared/sort';
 import { VideoService } from '../video.service';
+
+const UNSUPPORTED_CODEC_TYPES = ['dvd_subtitle'];
 
 const reverseString = (s: string): string => {
   return s.split('').reverse().join('');
@@ -340,7 +342,17 @@ export class WizardComponent implements OnInit, OnDestroy {
 
   getSubtitleTracks(video: VideoModel): ffmpeg.FfprobeStream[] {
     return video.ffprobeData.streams.filter(
-      (stream) => stream.codec_type === 'subtitle',
+      (stream) =>
+        stream.codec_type === 'subtitle' &&
+        !UNSUPPORTED_CODEC_TYPES.includes(stream.codec_name),
+    );
+  }
+
+  getUnsupportedSubtitleTracks(video: VideoModel): ffmpeg.FfprobeStream[] {
+    return video.ffprobeData.streams.filter(
+      (stream) =>
+        stream.codec_type === 'subtitle' &&
+        UNSUPPORTED_CODEC_TYPES.includes(stream.codec_name),
     );
   }
 
