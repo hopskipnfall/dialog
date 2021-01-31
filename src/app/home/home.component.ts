@@ -1,8 +1,8 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { OpenBrowserRequest } from 'app/shared/ipc/messages';
 import { Subscription } from 'rxjs';
 import { ElectronService } from '../core/services';
+import { OpenBrowserRequest } from '../shared/ipc/messages';
 import { ExtractionStatus, VideoModel } from '../shared/models/video-model';
 import { VideoService } from '../video.service';
 

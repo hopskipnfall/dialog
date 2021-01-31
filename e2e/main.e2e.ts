@@ -20,6 +20,6 @@ describe('angular-electron App', function () {
   it('should display message saying Dialog', async function () {
     const elem = await client.$('app-home #page-title');
     const text = await elem.getText();
-    expect(text).to.equal('Dialog v0.0.2');
+    expect(text).to.equal('Dialog v0.0.3 (alpha)');
   });
 });

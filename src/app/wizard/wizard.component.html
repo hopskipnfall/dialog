@@ -82,26 +82,29 @@
 
         <br />
 
-        <div
-          class="btn-group btn-group-toggle"
-          ngbRadioGroup
-          name="radioBasic"
-          [(ngModel)]="formVideo.audioStream"
-        >
-          <label
-            ngbButtonLabel
-            class="btn-primary"
-            *ngFor="let track of getAudioTracks(formVideo.video)"
+        <div ngbDropdown class="d-inline-block">
+          <button
+            class="btn btn-outline-primary"
+            id="dropdownBasic4"
+            ngbDropdownToggle
           >
-            <input
-              ngbButton
-              type="radio"
-              [value]="track"
-              [disabled]="getAudioTracks(formVideo.video).length < 2"
-            />
-            {{ getName(track) }}
-          </label>
+            {{ getName(formVideo.audioStream) }}
+          </button>
+          <div
+            ngbDropdownMenu
+            aria-labelledby="dropdownBasic1"
+            style="z-index: 999"
+          >
+            <button
+              ngbDropdownItem
+              *ngFor="let track of getAudioTracks(formVideo.video)"
+              (click)="formVideo.audioStream = track"
+            >
+              {{ getName(track) }}
+            </button>
+          </div>
         </div>
+
         <br />
 
         Subtitle tracks
@@ -131,7 +134,7 @@
                 formVideo.subtitlesOverridePath = undefined
               "
             >
-              {{ getName(track) }}
+              {{ getName(null) }}
             </button>
             <button
               ngbDropdownItem
@@ -233,7 +236,12 @@
     <ng-template matStepLabel>Extract dialog</ng-template>
 
     <div>
-      <button class="btn btn-primary" type="button" (click)="extract()">
+      <button
+        class="btn btn-primary"
+        type="button"
+        [disabled]="!editable"
+        (click)="extract()"
+      >
         Start Extraction
       </button>
     </div>
