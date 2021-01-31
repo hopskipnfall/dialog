@@ -63,7 +63,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   openGithubPage(): void {
     const request: OpenBrowserRequest = {
       type: 'open-browser-request',
-      url: 'https://github.com/hopskipnfall/dialog/releases/tag/latest-stable',
+      url: 'https://github.com/hopskipnfall/dialog/releases/latest',
     };
     this.electron.ipcRenderer.send('open-browser-request', request);
   }
