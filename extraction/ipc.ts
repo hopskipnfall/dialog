@@ -2,6 +2,8 @@ import { ipcMain, IpcMainEvent } from 'electron';
 import {
   ExtractAudioRequest,
   ExtractAudioResponse,
+  OpenBrowserRequest,
+  OpenBrowserResponse,
   OpenDebugConsoleRequest,
   OpenDebugConsoleResponse,
   PickFileRequest,
@@ -73,6 +75,17 @@ export const pickFileListener = (
   ) => Promise<PickFileResponse>,
 ): void => {
   ipcMain.on('pick-file', (event, ...args) => {
+    finalize(event, callback(event, args[0]));
+  });
+};
+
+export const openBrowserListener = (
+  callback: (
+    event: IpcMainEvent,
+    request: OpenBrowserRequest,
+  ) => Promise<OpenBrowserResponse>,
+): void => {
+  ipcMain.on('open-browser-request', (event, ...args) => {
     finalize(event, callback(event, args[0]));
   });
 };

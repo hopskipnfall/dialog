@@ -1,7 +1,7 @@
 {
-  "name": "angular-electron",
-  "version": "0.0.2",
-  "description": "Angular 10 with Electron (Typescript + SASS + Hot Reload)",
+  "name": "dialog",
+  "version": "0.0.3",
+  "description": "App for extracting condensed dialog from a video",
   "homepage": "https://github.com/hopskipnfall/dialog",
   "author": {
     "name": "Jonn",

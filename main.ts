@@ -1,11 +1,12 @@
 import * as ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
 import * as ffprobeInstaller from '@ffprobe-installer/ffprobe';
-import { app, BrowserWindow, dialog, ipcMain, screen } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, screen, shell } from 'electron';
 import * as ffmpeg from 'fluent-ffmpeg';
 import * as path from 'path';
 import * as url from 'url';
 import {
   extractAudioListener,
+  openBrowserListener,
   openDebugConsoleListener,
   pickFileListener,
   readSubtitlesListener,
@@ -30,8 +31,8 @@ function createWindow(): BrowserWindow {
 
   // Create the browser window.
   win = new BrowserWindow({
-    x: 0,
-    y: 0,
+    x: size.width / 3,
+    y: size.height / 3,
     width: 560,
     height: 660,
     webPreferences: {
@@ -150,6 +151,11 @@ pickFileListener(async (event, request) => {
         ? value.filePaths[0]
         : undefined,
   };
+});
+
+openBrowserListener(async (event, request) => {
+  await shell.openExternal(request.url);
+  return { type: 'open-browser-response' };
 });
 
 try {

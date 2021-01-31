@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { OpenBrowserRequest } from 'app/shared/ipc/messages';
 import { Subscription } from 'rxjs';
 import { ElectronService } from '../core/services';
 import { ExtractionStatus, VideoModel } from '../shared/models/video-model';
@@ -26,7 +27,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     private electron: ElectronService,
   ) {
     this.electron.ipcRenderer.on('error', (event, error: string) => {
-      console.log('it died', event, error);
+      console.log('ERROR REPORTED', event, error);
     });
   }
 
@@ -57,5 +58,13 @@ export class HomeComponent implements OnInit, OnDestroy {
   showDevConsole(): void {
     this.electron.ipcRenderer.send('open-debug-console');
     this.devConsoleOpen = true;
+  }
+
+  openGithubPage(): void {
+    const request: OpenBrowserRequest = {
+      type: 'open-browser-request',
+      url: 'https://github.com/hopskipnfall/dialog/releases/tag/latest-stable',
+    };
+    this.electron.ipcRenderer.send('open-browser-request', request);
   }
 }

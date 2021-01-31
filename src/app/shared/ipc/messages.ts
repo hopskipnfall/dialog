@@ -66,6 +66,19 @@ export type ExtractAudioResponse = {
   type: typeof EXTRACT_AUDIO_RESPONSE;
 };
 
+const OPEN_BROWSER_REQUEST = 'open-browser-request';
+
+export type OpenBrowserRequest = {
+  type: typeof OPEN_BROWSER_REQUEST;
+  url: string;
+};
+
+const OPEN_BROWSER_RESPONSE = 'open-browser-response';
+
+export type OpenBrowserResponse = {
+  type: typeof OPEN_BROWSER_RESPONSE;
+};
+
 const OPEN_DEBUG_CONSOLE_REQUEST = 'extract-audio-request';
 
 export type OpenDebugConsoleRequest = {
@@ -81,13 +94,15 @@ export type ClientMessage =
   | ReadSubtitlesRequest
   | ExtractAudioRequest
   | OpenDebugConsoleRequest
-  | PickFileRequest;
+  | PickFileRequest
+  | OpenBrowserRequest;
 
 export type ServerMessage =
   | ReadSubtitlesResponse
   | ExtractAudioResponse
   | OpenDebugConsoleResponse
-  | PickFileResponse;
+  | PickFileResponse
+  | OpenBrowserResponse;
 
 export interface Interval {
   start: string;

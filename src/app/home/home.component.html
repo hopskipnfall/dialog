@@ -2,7 +2,7 @@
   <div class="jumbotron">
     <h3 id="page-title" class="display-4">
       {{ 'PAGES.HOME.TITLE' | translate }}
-      <small class="text-muted">v0.0.2</small>
+      <small class="text-muted">v0.0.3 (alpha)</small>
     </h3>
     <p class="lead">
       Dialog is an app that lets you extract an audio file of condensed dialog
@@ -12,8 +12,12 @@
       Add Videos
     </button>
     &nbsp;
+    <button class="btn btn-secondary" type="button" (click)="openGithubPage()">
+      GitHub Page
+    </button>
+    &nbsp;
     <button
-      class="btn btn-info"
+      class="btn btn-dark"
       type="button"
       (click)="showDevConsole()"
       [hidden]="devConsoleOpen"
