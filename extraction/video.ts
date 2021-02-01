@@ -180,7 +180,7 @@ export class Video {
       );
     }
 
-    let copyCommand = ffmpeg(scratchMp3)
+    const copyCommand = ffmpeg(scratchMp3)
       .input(path.join(scratchPath, 'thumbnail.png'))
       .outputOptions([
         '-map 0:0',
