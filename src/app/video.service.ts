@@ -166,20 +166,21 @@ export class VideoService implements OnDestroy {
 
     this.actionInProgress = true;
 
-    const noSubtitles = this.extractionQueue.find(
-      (c) =>
-        (!c.intervals || c.intervals.length === 0) &&
-        !c.subtitles.subtitleStream &&
-        !c.subtitles.subtitlesOverridePath,
-    );
-    if (noSubtitles) {
-      const durationSeconds = noSubtitles.video.ffprobeData.format.duration;
-      const start = formalize(moment.duration(0, 'seconds'));
-      const end = formalize(moment.duration(durationSeconds, 'seconds'));
-      let intervals = [{ start, end }];
-      intervals = subtractChapters(intervals, noSubtitles);
-      noSubtitles.intervals = intervals;
-    }
+    this.extractionQueue
+      .filter(
+        (c) =>
+          (!c.intervals || c.intervals.length === 0) &&
+          !c.subtitles.subtitleStream &&
+          !c.subtitles.subtitlesOverridePath,
+      )
+      .forEach((noSubtitles) => {
+        const durationSeconds = noSubtitles.video.ffprobeData.format.duration;
+        const start = formalize(moment.duration(0, 'seconds'));
+        const end = formalize(moment.duration(durationSeconds, 'seconds'));
+        let intervals = [{ start, end }];
+        intervals = subtractChapters(intervals, noSubtitles);
+        noSubtitles.intervals = intervals;
+      });
 
     const noIntervals = this.extractionQueue.find(
       (c) => !c.intervals || c.intervals.length === 0,
