@@ -27,8 +27,6 @@ export interface Interval {
 }
 
 export class Video {
-  stream: fs.WriteStream;
-
   extractionProgress: BehaviorSubject<ExtractionStatus> = new BehaviorSubject({
     uri: this.videoPath,
     phase: 'NOT_STARTED',
@@ -57,14 +55,6 @@ export class Video {
       if (!fs.existsSync(outputFolder)) {
         fs.mkdirSync(outputFolder);
       }
-      // TODO: This somehow throws a user-visible error but does not stop execution.
-      // Figure out how to catch this and prevent moving forward.
-      this.stream = fs.createWriteStream(
-        `${path.join(
-          outputFolder,
-          path.basename(this.videoPath, path.extname(this.videoPath)),
-        )}.mp3`,
-      );
       const combined = request.intervals;
       await this.extractAudio(combined, request);
 
@@ -109,6 +99,34 @@ export class Video {
     intervals: Interval[],
     track: ExtractAudioRequest,
   ) {
+    const filenameWithoutExtension = path.basename(
+      this.videoPath,
+      path.extname(this.videoPath),
+    );
+    const scratchPath = fs.mkdtempSync(
+      path.join(os.tmpdir(), `${filenameWithoutExtension}-`),
+    );
+    console.log('Scratch path', scratchPath);
+    fs.mkdirSync(scratchPath, { recursive: true });
+
+    const outputFolder = path.join(os.homedir(), 'Desktop', 'Dialog');
+    const scratchMp3 = `${path.join(
+      scratchPath,
+      filenameWithoutExtension,
+    )}.mp3`;
+    const finalMp3 = `${path.join(outputFolder, filenameWithoutExtension)}.mp3`;
+    // TODO: This somehow throws a user-visible error but does not stop execution.
+    // Figure out how to catch this and prevent moving forward.
+    const stream = fs.createWriteStream(scratchMp3);
+
+    await this.toPromise(ffmpeg(this.videoPath), (command) => {
+      command.screenshots({
+        timestamps: ['40%'],
+        filename: 'thumbnail.png',
+        folder: scratchPath,
+      });
+    });
+
     console.error('ExtractAudioRequest', track);
     const metadataParameters = [];
     if (track.outputOptions.albumName) {
@@ -158,9 +176,24 @@ export class Video {
         });
       // eslint-disable-next-line no-await-in-loop
       await this.toPromise(command, (cmd) =>
-        cmd.pipe(this.stream, i === max - 1 ? { end: true } : { end: false }),
+        cmd.pipe(stream, i === max - 1 ? { end: true } : { end: false }),
       );
     }
+
+    let copyCommand = ffmpeg(scratchMp3)
+      .input(path.join(scratchPath, 'thumbnail.png'))
+      .outputOptions([
+        '-map 0:0',
+        '-map 1:0',
+        '-c copy',
+        '-id3v2_version 3',
+        '-metadata:s:v title="Album cover"',
+        '-metadata:s:v comment="Cover (front)"',
+      ]);
+    await this.toPromise(copyCommand, (c) => c.saveToFile(finalMp3));
+
+    // Note: This doesn't throw an error when it fails (for example, with recursive: false)...
+    fs.rmdirSync(scratchPath, { recursive: true });
   }
 
   async readSubtitlesFromStream(stream: ffmpeg.FfprobeStream): Promise<string> {
