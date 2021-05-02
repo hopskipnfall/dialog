@@ -45,12 +45,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Install display server dependencies
-        run: apt install xvfb libxtst6 libxss1 libgtk2.0-0 -y
-
-      - name: Install core libraries for chromium driver
-        run: apt install libnss3 libasound2 libgconf-2-4 -y
-
       - name: Install Dependencies
         run: npm i
 
