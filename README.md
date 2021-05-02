@@ -53,7 +53,7 @@ For Windows/Linux on Mac:
 1. Run `npm run package-linux; npm run package-win`.
 
 [build-badge]: https://travis-ci.org/hopskipnfall/dialog.svg?branch=master&style=style=flat-square
-[license-badge]: https://img.shields.io/badge/license-Apache2-blue.svg?style=style=flat-square
+[license-badge]: https://img.shields.io/badge/license-MIT-blue.svg
 [license]: https://github.com/hopskipnfall/dialog/blob/master/LICENSE.md
 [prs-badge]: https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square
 [prs]: http://makeapullrequest.com
