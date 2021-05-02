@@ -1,0 +1,19 @@
+branches:
+  only:
+    - master
+os:
+  - linux
+  - osx
+language: node_js
+node_js:
+  - 'lts/*'
+services:
+  - xvfb
+before_script:
+  - export DISPLAY=:99.0
+install:
+  - npm set progress=false
+  - npm install
+script:
+  - npm run build
+  - npm run e2e
