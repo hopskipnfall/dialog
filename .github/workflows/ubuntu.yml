@@ -47,6 +47,9 @@ jobs:
       - name: Install Dependencies
         run: npm i
 
+      - name: Post-install Electron
+        run: ./node_modules/electron/install.js
+
       - name: Check lint
         run: npm run lint
 
