@@ -4,7 +4,6 @@ branches:
 os:
   - linux
   - osx
-  - windows
 language: node_js
 node_js:
   - 'lts/*'
@@ -16,7 +15,5 @@ install:
   - npm set progress=false
   - npm install
 script:
-  - npm run lint
   - npm run build
-  - if [ "$TRAVIS_OS_NAME" != "windows" ]; then npm run test ; fi
-  - if [ "$TRAVIS_OS_NAME" != "windows" ]; then npm run e2e ; fi
+  - npm run e2e
