@@ -39,13 +39,27 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
+
       - name: Install Dependencies
         run: npm i
+
       - name: Check lint
         run: npm run lint
+
       - name: Build the app
         run: npm run electron:build
+
+      - name: Run headless unit test
+        uses: GabrielBB/xvfb-action@v1
+        with:
+          run: npm test
+
+      - name: Run headless unit test
+        uses: GabrielBB/xvfb-action@v1
+        with:
+          run: npm run e2e
