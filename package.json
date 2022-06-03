@@ -115,7 +115,7 @@
     "@ng-bootstrap/ng-bootstrap": "7.0.0",
     "bootstrap": "^4.5.0",
     "fluent-ffmpeg": "2.1.2",
-    "moment": "2.27.0",
+    "moment": "2.29.3",
     "rxjs": "6.6.2"
   }
 }
