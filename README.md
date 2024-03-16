@@ -16,6 +16,12 @@
 
 Dialog is an app that lets you extract an audio file of condensed dialog from a video file.
 
+**To download the app, see the latest entry on the [releases](https://github.com/hopskipnfall/dialog/releases) page.**
+
+I built this app to help me study Japanese, but I'm past the point where I need it anymore so this is not currently being updated.
+That being said, I'm open to adding new features and fixing bugs if anyone else finds this useful. Feel free to
+[create a new issue](https://github.com/hopskipnfall/dialog/issues) and I'll take a look.
+
 # Development
 
 ## Key Commands
